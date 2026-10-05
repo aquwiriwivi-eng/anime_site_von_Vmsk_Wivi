@@ -1,0 +1,28 @@
+#docker run --rm -d --name nginx_test_site_cont -p 8500:80 -v /home/wivi_docker/anime_site_von_Vmsk_Wivi/nginx/data:/var/www/html nginx_test_site:v1
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: "Dockerfile_nginx"
+    container_name: "nginx_test_site_container"
+    networks:
+      - frontend_net
+    ports:
+     - "8050:80"
+    volumes:
+      - "./nginx/data:/var/www/html"
+    environment:
+      - 'OWNER=Vmks_little'
+      - 'ANIME_TOP=Bloom_into_you'
+    restart: unless-stopped
+
+
+
+networks:
+  frontend_net:
+    name: frontend_net
+    driver: bridge
+  backend_net:
+    name: backend_net
+    driver: bridge
