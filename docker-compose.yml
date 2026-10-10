@@ -17,7 +17,37 @@ services:
       - 'ANIME_TOP=Bloom_into_you'
     restart: unless-stopped
 
+# Use postgres/example user/password credentials
 
+  postgre_sql:
+    image: postgres:18.6-trixie
+    restart: unless-stopped
+    # set shared memory limit when using docker compose
+    shm_size: 128mb
+    # or set shared memory limit when deploy via swarm stack
+    volumes:
+      - Postgre_data:/var/lib/postgresql
+    #  - type: tmpfs
+    #    target: /dev/shm
+    #    tmpfs:
+    #      size: 134217728 # 128*2^20 bytes = 128Mb
+    environment:
+      POSTGRES_USER: Example_User
+      POSTGRES_PASSWORD: example123
+# Password and username will be rewrite from .env.db
+    env_file:
+      - path: ./.env.db
+        required: false
+    networks:
+      - backend_net
+
+  adminer_sql:
+    image: adminer:6
+    restart: unless-stopped
+    ports:
+      - 8051:8080
+    networks:
+      - backend_net
 
 networks:
   frontend_net:
@@ -26,3 +56,7 @@ networks:
   backend_net:
     name: backend_net
     driver: bridge
+
+volumes:
+  Postgre_data:
+    name: db_storage_volume
