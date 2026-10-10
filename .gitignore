@@ -1,1 +1,7 @@
-/.env.db
+*
+
+!Dockerfile_nginx
+!docker-compose.yml
+!.gitignore
+!nginx/
+!nginx/**
