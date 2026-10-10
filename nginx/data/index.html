@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YummyAnime Lite — Каталог аниме</title>
+    <!-- Подключаем FontAwesome для иконок Telegram и WhatsApp -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Цветовая палитра в темно-розовых тонах */
         :root {
@@ -28,12 +30,13 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             line-height: 1.5;
-            padding-bottom: 50px;
             position: relative;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* 1. Заглушка фона background.png с 90% прозрачности (10% видимости) */
+        /* 1. Заглушка фона background.png с 90% прозрачности */
         body::before {
             content: '';
             position: fixed;
@@ -45,7 +48,7 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            opacity: 0.1; /* Прозрачность 90% */
+            opacity: 0.1;
             z-index: -2;
             pointer-events: none;
         }
@@ -83,15 +86,32 @@
             align-items: center;
         }
 
-        .logo {
+        /* Логотип с фото 1:1 */
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-img {
+            width: 40px;
+            height: 40px;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid var(--accent-color);
+            background-color: var(--card-bg);
+        }
+
+        .logo-text {
             font-size: 24px;
             font-weight: 800;
             color: var(--text-main);
-            text-decoration: none;
             letter-spacing: 0.5px;
         }
 
-        .logo span {
+        .logo-text span {
             color: var(--accent-color);
         }
 
@@ -100,6 +120,7 @@
             max-width: 1200px;
             margin: 30px auto;
             padding: 0 20px;
+            flex-grow: 1;
         }
 
         .section-title {
@@ -147,7 +168,6 @@
             box-shadow: 0 12px 30px rgba(236, 72, 153, 0.25);
         }
 
-        /* Соотношение сторон 16:9 */
         .weekly-art-wrapper {
             position: relative;
             width: 100%;
@@ -170,7 +190,6 @@
             transform: scale(1.06);
         }
 
-        /* Градиент поверх арта для читаемости текста */
         .weekly-art-overlay {
             position: absolute;
             bottom: 0;
@@ -215,7 +234,6 @@
             font-size: 12px;
             color: var(--accent-soft);
         }
-
 
         /* --- СЕКЦИЯ: ОСНОВНОЙ КАТАЛОГ --- */
         .anime-grid {
@@ -327,6 +345,89 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+
+        /* --- ПОДВАЛ (FOOTER) --- */
+        footer {
+            background-color: rgba(25, 8, 19, 0.95);
+            border-top: 1px solid var(--card-border);
+            padding: 30px 20px;
+            margin-top: 60px;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .footer-text {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .footer-email {
+            color: var(--accent-soft);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .footer-email:hover {
+            color: var(--accent-color);
+            text-decoration: underline;
+        }
+
+        .footer-love {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .footer-love i {
+            color: var(--accent-color);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 16px;
+            margin-top: 4px;
+        }
+
+        .social-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .social-btn.telegram:hover {
+            background-color: #229ED9;
+            border-color: #229ED9;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(34, 158, 217, 0.4);
+        }
+
+        .social-btn.whatsapp:hover {
+            background-color: #25D366;
+            border-color: #25D366;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -334,7 +435,11 @@
     <!-- Шапка -->
     <header>
         <div class="header-container">
-            <a href="#" class="logo">Yummy<span>Anime</span></a>
+            <a href="#" class="logo-container">
+                <!-- Картинка 1:1 для логотипа -->
+                <img class="logo-img" src="logo.png" alt="Логотип" onerror="this.src='https://via.placeholder.com/100x100/ec4899/ffffff?text=Y';">
+                <div class="logo-text">Yummy<span>Anime</span></div>
+            </a>
         </div>
     </header>
 
@@ -353,6 +458,29 @@
         </section>
 
     </div>
+
+    <!-- Подвал (Footer) -->
+    <footer>
+        <div class="footer-content">
+            <p class="footer-text">
+                Все вопросы, предложения и пожелания на почту: 
+                <a href="mailto:vmskwivi@gmail.com" class="footer-email">vmskwivi@gmail.com</a>
+            </p>
+            <p class="footer-love">
+                С любовью от команды Vmsk_Wivi <i class="fa-solid fa-heart"></i>
+            </p>
+
+            <!-- Иконки соцсетей -->
+            <div class="social-links">
+                <a href="https://t.me/" target="_blank" class="social-btn telegram" title="Telegram">
+                    <i class="fa-brands fa-telegram"></i>
+                </a>
+                <a href="https://wa.me/" target="_blank" class="social-btn whatsapp" title="WhatsApp">
+                    <i class="fa-brands fa-whatsapp"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
 
     <!-- Скрипт рендеринга данных -->
     <script>
