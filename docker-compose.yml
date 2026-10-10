@@ -31,11 +31,10 @@ services:
     #    target: /dev/shm
     #    tmpfs:
     #      size: 134217728 # 128*2^20 bytes = 128Mb
-    environment:
-      POSTGRES_USER: Example_User
-      POSTGRES_PASSWORD: example123
 # Password and username will be rewrite from .env.db
     env_file:
+      - path: ./.env.db.example
+        required: true
       - path: ./.env.db
         required: false
     networks:
