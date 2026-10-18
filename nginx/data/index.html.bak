@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YummyAnime Lite — Каталог аниме</title>
+    <!-- Подключаем FontAwesome для иконок Telegram и WhatsApp -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Цветовая палитра в темно-розовых тонах */
+        :root {
+            --bg-color: #190813;         /* Темно-розовый основной фон */
+            --card-bg: #280d20;         /* Фон карточек */
+            --card-border: #4a183d;     /* Границы элементов */
+            --accent-color: #ec4899;    /* Ярко-розовый акцент */
+            --accent-soft: #f472b6;     /* Нежно-розовый акцент */
+            --text-main: #fdf2f8;       /* Основной текст */
+            --text-muted: #d8b4fe;      /* Второстепенный текст */
+            --star-color: #fbbf24;      /* Цвет рейтинга */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 1. Заглушка фона background.png с 90% прозрачности */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.1;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        /* 2. Нежно-розовый слой поверх фона */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top, rgba(244, 114, 182, 0.15), transparent 80%),
+                        linear-gradient(to bottom, rgba(25, 8, 19, 0.4), rgba(25, 8, 19, 0.9));
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Шапка сайта */
+        header {
+            background-color: rgba(40, 13, 32, 0.85);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Логотип с фото 1:1 */
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-img {
+            width: 40px;
+            height: 40px;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid var(--accent-color);
+            background-color: var(--card-bg);
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: 0.5px;
+        }
+
+        .logo-text span {
+            color: var(--accent-color);
+        }
+
+        /* Общий контейнер контента */
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+            flex-grow: 1;
+        }
+
+        .section-title {
+            font-size: 22px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 24px;
+            background-color: var(--accent-color);
+            border-radius: 2px;
+            box-shadow: 0 0 10px var(--accent-color);
+        }
+
+        /* --- СЕКЦИЯ: АНИМЕ НЕДЕЛИ (БАННЕРЫ 16:9) --- */
+        .weekly-section {
+            margin-bottom: 45px;
+        }
+
+        .weekly-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .weekly-card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .weekly-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--accent-color);
+            box-shadow: 0 12px 30px rgba(236, 72, 153, 0.25);
+        }
+
+        .weekly-art-wrapper {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 */
+            overflow: hidden;
+            background-color: #12050e;
+        }
+
+        .weekly-art-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .weekly-card:hover .weekly-art-img {
+            transform: scale(1.06);
+        }
+
+        .weekly-art-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            top: 0;
+            background: linear-gradient(to top, rgba(40, 13, 32, 0.95) 10%, rgba(40, 13, 32, 0.2) 60%, transparent 100%);
+        }
+
+        .weekly-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: linear-gradient(135deg, var(--accent-color), #be185d);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .weekly-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px;
+        }
+
+        .weekly-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 4px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+        }
+
+        .weekly-subtitle {
+            font-size: 12px;
+            color: var(--accent-soft);
+        }
+
+        /* --- СЕКЦИЯ: ОСНОВНОЙ КАТАЛОГ --- */
+        .anime-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 28px;
+        }
+
+        .anime-card {
+            background-color: var(--card-bg);
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .anime-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(236, 72, 153, 0.5);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .poster-wrapper {
+            position: relative;
+            width: 100%;
+            padding-top: 140%;
+            overflow: hidden;
+            background-color: #12050e;
+        }
+
+        .poster-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .anime-card:hover .poster-img {
+            transform: scale(1.05);
+        }
+
+        .rating-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background-color: rgba(25, 8, 19, 0.85);
+            backdrop-filter: blur(4px);
+            color: var(--star-color);
+            font-weight: 700;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .card-content {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .anime-title {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .anime-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .genres {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .genre-tag {
+            font-size: 11px;
+            background-color: #3b1430;
+            color: var(--accent-soft);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(236, 72, 153, 0.2);
+        }
+
+        .description {
+            font-size: 13px;
+            color: #cbd5e1;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* --- ПОДВАЛ (FOOTER) --- */
+        footer {
+            background-color: rgba(25, 8, 19, 0.95);
+            border-top: 1px solid var(--card-border);
+            padding: 30px 20px;
+            margin-top: 60px;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .footer-text {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .footer-email {
+            color: var(--accent-soft);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .footer-email:hover {
+            color: var(--accent-color);
+            text-decoration: underline;
+        }
+
+        .footer-love {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .footer-love i {
+            color: var(--accent-color);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 16px;
+            margin-top: 4px;
+        }
+
+        .social-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .social-btn.telegram:hover {
+            background-color: #229ED9;
+            border-color: #229ED9;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(34, 158, 217, 0.4);
+        }
+
+        .social-btn.whatsapp:hover {
+            background-color: #25D366;
+            border-color: #25D366;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Шапка -->
+    <header>
+        <div class="header-container">
+            <a href="#" class="logo-container">
+                <!-- Картинка 1:1 для логотипа -->
+                <img class="logo-img" src="logo.png" alt="Логотип" onerror="this.src='https://via.placeholder.com/100x100/ec4899/ffffff?text=Y';">
+                <div class="logo-text">Yummy<span>Anime</span></div>
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- Секция: Аниме недели (3 больших арта 16:9) -->
+        <section class="weekly-section">
+            <h2 class="section-title">Аниме недели</h2>
+            <div class="weekly-grid" id="weeklyGrid"></div>
+        </section>
+
+        <!-- Секция: Основной каталог -->
+        <section>
+            <h2 class="section-title">Каталог аниме</h2>
+            <div class="anime-grid" id="animeGrid"></div>
+        </section>
+
+    </div>
+
+    <!-- Подвал (Footer) -->
+    <footer>
+        <div class="footer-content">
+            <p class="footer-text">
+                Все вопросы, предложения и пожелания на почту: 
+                <a href="mailto:vmskwivi@gmail.com" class="footer-email">vmskwivi@gmail.com</a>
+            </p>
+            <p class="footer-love">
+                С любовью от команды Vmsk_Wivi <i class="fa-solid fa-heart"></i>
+            </p>
+
+            <!-- Иконки соцсетей -->
+            <div class="social-links">
+                <a href="https://t.me/" target="_blank" class="social-btn telegram" title="Telegram">
+                    <i class="fa-brands fa-telegram"></i>
+                </a>
+                <a href="https://wa.me/" target="_blank" class="social-btn whatsapp" title="WhatsApp">
+                    <i class="fa-brands fa-whatsapp"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Скрипт рендеринга данных -->
+    <script>
+        // 1. Данные для "Аниме недели" (Формат 16:9)
+        const weeklyAnimeData = [
+            {
+                id: 101,
+                title: "Атака титанов: Финал",
+                subtitle: "Главный тренд недели",
+                art16x9: "https://images.hdqwalls.com/wallpapers/attack-on-titan-season-4-2021-4k-bc.jpg"
+            },
+            {
+                id: 102,
+                title: "Магическая битва 2",
+                subtitle: "Выбор пользователей",
+                art16x9: "https://images.hdqwalls.com/wallpapers/jujutsu-kaisen-season-2-4k-io.jpg"
+            },
+            {
+                id: 103,
+                title: "Клинок, рассекающий демонов",
+                subtitle: "Самый высокий рейтинг",
+                art16x9: "https://images.hdqwalls.com/wallpapers/demon-slayer-kimetsu-no-yaiba-4k-2020-e2.jpg"
+            }
+        ];
+
+        // 2. Основная база данных (Каталог из 3 элементов)
+        const animeData = [
+            {
+                id: 1,
+                title: "Атака титанов",
+                originalTitle: "Shingeki no Kyojin (2013)",
+                rating: "9.1",
+                genres: ["Экшен", "Драма", "Фэнтези"],
+                poster: "https://m.media-amazon.com/images/M/MVBmMzI1MGEyM2MtYmUwNC00M2I2LWI4MmItMzc4Y2VkYTNhMzA2XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+                description: "Уже 100 лет человечество живёт за огромными стенами, защищающими от гигантских людоедов — титанов. Но в один день стена рушится, и мир Эрена Йегера меняется навсегда."
+            },
+            {
+                id: 2,
+                title: "Магическая битва",
+                originalTitle: "Jujutsu Kaisen (2020)",
+                rating: "8.7",
+                genres: ["Экшен", "Сёнэн", "Мистика"],
+                poster: "https://m.media-amazon.com/images/M/MVBmM2NmNmFlYjctN2E3MS00Y2VkLTg4M2QtYjY2ODkyMzBmOTE0XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+                description: "Старшеклассник Юдзи Итадори обладает невероятной физической силой. Чтобы спасти друзей от проклятия, он проглатывает древний артефакт и сам становится вместилищем демона."
+            },
+            {
+                id: 3,
+                title: "Клинок, рассекающий демонов",
+                originalTitle: "Kimetsu no Yaiba (2019)",
+                rating: "8.6",
+                genres: ["Экшен", "Приключения", "Исторический"],
+                poster: "https://m.media-amazon.com/images/M/MVBNzJkY2Y2Y2YtYTI3NC00YjBhLWE1NDgtM2MzOGM5NTk5NzRiXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+                description: "Танджиро Камадо возвращается домой и находит свою семью убитой демоном, а сестра Незуко превращена в монстра. Танджиро решает стать истребителем демонов, чтобы исцелить сестру."
+            }
+        ];
+
+        // Рендер "Аниме недели"
+        function renderWeeklyAnime(data) {
+            const container = document.getElementById('weeklyGrid');
+            container.innerHTML = data.map(item => `
+                <div class="weekly-card">
+                    <div class="weekly-art-wrapper">
+                        <img class="weekly-art-img" src="${item.art16x9}" alt="${item.title}">
+                        <div class="weekly-art-overlay"></div>
+                        <div class="weekly-badge">Топ недели</div>
+                        <div class="weekly-content">
+                            <h3 class="weekly-title">${item.title}</h3>
+                            <div class="weekly-subtitle">${item.subtitle}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Рендер основного каталога
+        function renderAnimeCards(data) {
+            const grid = document.getElementById('animeGrid');
+            grid.innerHTML = data.map(anime => {
+                const genresHTML = anime.genres
+                    .map(genre => `<span class="genre-tag">${genre}</span>`)
+                    .join('');
+
+                return `
+                    <div class="anime-card">
+                        <div class="poster-wrapper">
+                            <img class="poster-img" src="${anime.poster}" alt="${anime.title}">
+                            <div class="rating-badge">★ ${anime.rating}</div>
+                        </div>
+                        <div class="card-content">
+                            <h2 class="anime-title">${anime.title}</h2>
+                            <div class="anime-sub">${anime.originalTitle}</div>
+                            <div class="genres">${genresHTML}</div>
+                            <p class="description">${anime.description}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Инициализация при загрузке
+        renderWeeklyAnime(weeklyAnimeData);
+        renderAnimeCards(animeData);
+    </script>
+</body>
+</html>
