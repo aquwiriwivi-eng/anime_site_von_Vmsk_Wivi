@@ -350,18 +350,79 @@
         footer {
             background-color: rgba(25, 8, 19, 0.95);
             border-top: 1px solid var(--card-border);
-            padding: 30px 20px;
+            padding: 30px 0;
             margin-top: 60px;
             text-align: center;
         }
 
+        /* Три колонки: пусто | основной контент по центру | лого справа */
         .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
+            width: 100%;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            align-items: center;
+            gap: 24px;
+        }
+
+        .footer-main {
+            grid-column: 2;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 16px;
+        }
+
+        /* Лого-фото 16:9 с правой стороны подвала.
+           Края плавно растворяются в фон (маска), картинка слегка прозрачная. */
+        .footer-logo {
+            grid-column: 3;
+            justify-self: end;
+            margin-right: 85px; /* отступ от правого края */
+            display: block;
+            line-height: 0;
+            pointer-events: none; /* плавные края не перекрывают ссылки рядом */
+        }
+
+        .footer-logo-img {
+            width: 256px;
+            max-width: none;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            display: block;
+            opacity: 0.8;
+            -webkit-mask-image:
+                linear-gradient(to right, transparent 0%, #000 30%, #000 70%, transparent 100%),
+                linear-gradient(to bottom, transparent 0%, #000 30%, #000 70%, transparent 100%);
+            -webkit-mask-composite: source-in;
+            mask-image:
+                linear-gradient(to right, transparent 0%, #000 30%, #000 70%, transparent 100%),
+                linear-gradient(to bottom, transparent 0%, #000 30%, #000 70%, transparent 100%);
+            mask-composite: intersect;
+        }
+
+        /* Текст подвала поверх краёв логотипа */
+        .footer-main {
+            position: relative;
+            z-index: 1;
+            padding: 0 20px;
+        }
+
+        /* Телефоны и узкие окна: лого под текстом, по центру */
+        @media (max-width: 1150px) {
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+            .footer-main {
+                grid-column: 1;
+            }
+            .footer-logo {
+                grid-column: 1;
+                justify-self: center;
+                margin: 0;
+            }
+            .footer-logo-img {
+                width: 192px;
+            }
         }
 
         .footer-text {
@@ -462,22 +523,29 @@
     <!-- Подвал (Footer) -->
     <footer>
         <div class="footer-content">
-            <p class="footer-text">
-                Все вопросы, предложения и пожелания на почту: 
-                <a href="mailto:vmskwivi@gmail.com" class="footer-email">vmskwivi@gmail.com</a>
-            </p>
-            <p class="footer-love">
-                С любовью от команды Vmsk_Wivi <i class="fa-solid fa-heart"></i>
-            </p>
+            <div class="footer-main">
+                <p class="footer-text">
+                    Все вопросы, предложения и пожелания на почту: 
+                    <a href="mailto:vmskwivi@gmail.com" class="footer-email">vmskwivi@gmail.com</a>
+                </p>
+                <p class="footer-love">
+                    С любовью от команды Vmsk_Wivi <i class="fa-solid fa-heart"></i>
+                </p>
 
-            <!-- Иконки соцсетей -->
-            <div class="social-links">
-                <a href="https://t.me/" target="_blank" class="social-btn telegram" title="Telegram">
-                    <i class="fa-brands fa-telegram"></i>
-                </a>
-                <a href="https://wa.me/" target="_blank" class="social-btn whatsapp" title="WhatsApp">
-                    <i class="fa-brands fa-whatsapp"></i>
-                </a>
+                <!-- Иконки соцсетей -->
+                <div class="social-links">
+                    <a href="https://t.me/" target="_blank" class="social-btn telegram" title="Telegram">
+                        <i class="fa-brands fa-telegram"></i>
+                    </a>
+                    <a href="https://wa.me/" target="_blank" class="social-btn whatsapp" title="WhatsApp">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Лого-фото 16:9 (файл logo16_9.jfif) -->
+            <div class="footer-logo">
+                <img class="footer-logo-img" src="logo_front/logo16_9.jfif" width="256" height="144" alt="Логотип Yume - Anime" onerror="this.onerror=null;this.src='https://via.placeholder.com/640x360/ec4899/ffffff?text=Yume';">
             </div>
         </div>
     </footer>
