@@ -142,6 +142,65 @@
             box-shadow: 0 0 10px var(--accent-color);
         }
 
+        /* --- СЕКЦИЯ: ПОИСКОВАЯ СТРОКА --- */
+        .search-section {
+            margin-bottom: 35px;
+        }
+
+        .search-box {
+            position: relative;
+            max-width: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            color: var(--text-muted);
+            font-size: 18px;
+            pointer-events: none;
+            transition: color 0.3s ease;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 20px 16px 54px;
+            font-size: 16px;
+            font-family: inherit;
+            color: var(--text-main);
+            background-color: rgba(40, 13, 32, 0.7);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            outline: none;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: rgba(216, 180, 254, 0.5);
+        }
+
+        .search-input:focus {
+            background-color: rgba(40, 13, 32, 0.95);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
+        }
+
+        .search-input:focus + .search-icon {
+            color: var(--accent-color);
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+        /* --- СЕКЦИЯ: ПОИСКОВАЯ СТРОКА (КОНЕЦ) --- */
+
         /* --- СЕКЦИЯ: АНИМЕ НЕДЕЛИ (БАННЕРЫ 16:9) --- */
         .weekly-section {
             margin-bottom: 45px;
@@ -510,6 +569,14 @@
 
     <div class="container">
         
+        <!-- Секция: Поисковая строка -->
+        <section class="search-section">
+            <div class="search-box">
+                <input type="text" id="searchInput" class="search-input" placeholder="Поиск аниме по названию или жанрам..." autocomplete="off">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            </div>
+        </section>
+
         <!-- Секция: Аниме недели (3 больших арта 16:9) -->
         <section class="weekly-section">
             <h2 class="section-title">Аниме недели</h2>
@@ -630,6 +697,12 @@
         // Рендер основного каталога
         function renderAnimeCards(data) {
             const grid = document.getElementById('animeGrid');
+            // НОВАЯ СТРОКА: сообщение, если ничего не найдено
+            if (data.length === 0) {
+                grid.innerHTML = `<div class="no-results">По вашему запросу ничего не найдено 😔</div>`;
+                return;
+            }
+
             grid.innerHTML = data.map(anime => {
                 const genresHTML = anime.genres
                     .map(genre => `<span class="genre-tag">${genre}</span>`)
@@ -655,6 +728,19 @@
         // Инициализация при загрузке
         renderWeeklyAnime(weeklyAnimeData);
         renderAnimeCards(animeData);
+     // Обработка живого поиска
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const filteredData = animeData.filter(anime => {
+                const matchTitle = anime.title.toLowerCase().includes(query);
+                const matchOriginal = anime.originalTitle.toLowerCase().includes(query);
+                const matchGenres = anime.genres.some(g => g.toLowerCase().includes(query));
+                return matchTitle || matchOriginal || matchGenres;
+            });
+            renderAnimeCards(filteredData);
+        });
+    
     </script>
 </body>
 </html>
