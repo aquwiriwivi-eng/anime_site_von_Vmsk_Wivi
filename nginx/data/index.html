@@ -738,6 +738,43 @@
         // Инициализация при загрузке
         renderWeeklyAnime(weeklyAnimeData);
         renderAnimeCards(animeData);
+		
+		// Обработчик отправки поисковой формы (AJAX/Fetch)
+        const searchForm = document.querySelector('.search-form');
+        if (searchForm) {
+            searchForm.addEventListener('submit', async (e) => {
+                e.preventDefault(); // Отменяем перезагрузку страницы
+
+                const query = document.querySelector('.search-input').value.trim();
+                if (!query) return;
+
+                try {
+                    // Отправляем GET-запрос на бэкенд
+                    const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                    
+                    if (!response.ok) throw new Error('Ошибка сервера');
+
+                    const searchResults = await response.json();
+
+                    // Меняем заголовок секции каталога под результаты
+                    const sectionTitle = document.querySelector('.anime-grid').previousElementSibling;
+                    if (sectionTitle) {
+                        sectionTitle.textContent = `Результаты поиска: "${query}"`;
+                    }
+
+                    // Отрисовываем найденные карточки или сообщение об ошибке
+                    if (searchResults.length > 0) {
+                        renderAnimeCards(searchResults);
+                    } else {
+                        document.getElementById('animeGrid').innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">Ничего не найдено :(</p>';
+                    }
+
+                } catch (error) {
+                    console.error('Ошибка поиска:', error);
+                }
+            });
+        }
+		
     </script>
 </body>
 </html>
