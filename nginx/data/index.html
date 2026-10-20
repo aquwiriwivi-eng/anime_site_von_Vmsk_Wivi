@@ -141,7 +141,74 @@
             border-radius: 2px;
             box-shadow: 0 0 10px var(--accent-color);
         }
+		
+		/* --- СЕКЦИЯ: ПОИСКОВАЯ СТРОКА --- */
+        .search-section {
+            margin-bottom: 35px;
+        }
 
+        .search-form {
+            display: flex;
+            align-items: center;
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 6px 8px 6px 18px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-form:focus-within {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.35);
+            background-color: rgba(40, 13, 32, 0.95);
+        }
+
+        .search-icon {
+            color: var(--text-muted);
+            font-size: 18px;
+            margin-right: 12px;
+            transition: color 0.3s ease;
+        }
+
+        .search-form:focus-within .search-icon {
+            color: var(--accent-color);
+        }
+
+        .search-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-main);
+            font-size: 16px;
+            font-family: inherit;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, var(--accent-color), #be185d);
+            color: #ffffff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .search-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+        }
+		
         /* --- СЕКЦИЯ: АНИМЕ НЕДЕЛИ (БАННЕРЫ 16:9) --- */
         .weekly-section {
             margin-bottom: 45px;
@@ -510,6 +577,22 @@
 
     <div class="container">
         
+		<!-- Поисковая строка -->
+        <div class="search-section">
+            <form action="/search" method="GET" class="search-form">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input 
+                    type="text" 
+                    name="q" 
+                    class="search-input" 
+                    placeholder="Поиск аниме по названию или жанрам..." 
+                    autocomplete="off" 
+                    required
+                >
+                <button type="submit" class="search-btn">Найти</button>
+            </form>
+        </div>
+		
         <!-- Секция: Аниме недели (3 больших арта 16:9) -->
         <section class="weekly-section">
             <h2 class="section-title">Аниме недели</h2>
