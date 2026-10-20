@@ -7,5 +7,11 @@ from pydantic import BaseModel #чтобы писать api и задавать 
 
 app = FastAPI()
 
-
-
+def get_conn():
+    return psycopg.connect(
+        host="postgre_sql",
+        port=5432,
+        dbname="Anime_Wivi",
+        user="Vmsk_Wivi",
+        password=os.environ["DB_PASSWORD"],
+    )
