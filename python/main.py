@@ -15,3 +15,8 @@ def get_conn():
         user="Vmsk_Wivi",
         password=os.environ["DB_PASSWORD"],
     )
+
+@app.get("/api/search") # Чекай // Обработчик отправки поисковой формы (AJAX/Fetch) там в строке  // Отправляем GET-запрос на бэкенд
+# const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+#есть кусочек /api/search?q=
+# а дальше после $() являеться нашим текстом запроса, например "Атака Титанов"
