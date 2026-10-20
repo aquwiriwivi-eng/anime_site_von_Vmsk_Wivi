@@ -710,25 +710,26 @@
             `).join('');
         }
 
-        // Рендер основного каталога
+		// Рендер основного каталога под ваши поля БД (russian, japanese, date, mainurl)
         function renderAnimeCards(data) {
             const grid = document.getElementById('animeGrid');
             grid.innerHTML = data.map(anime => {
-                const genresHTML = anime.genres
-                    .map(genre => `<span class="genre-tag">${genre}</span>`)
-                    .join('');
+                const genres = anime.genres ? anime.genres : ["Аниме"];
+                const genresHTML = genres.map(genre => `<span class="genre-tag">${genre}</span>`).join('');
+                const description = anime.description ? anime.description : "Описание отсутствует.";
+                const rating = anime.rating ? anime.rating : "--";
 
                 return `
                     <div class="anime-card">
                         <div class="poster-wrapper">
-                            <img class="poster-img" src="${anime.poster}" alt="${anime.title}">
-                            <div class="rating-badge">★ ${anime.rating}</div>
+                            <img class="poster-img" src="${anime.mainurl}" alt="${anime.russian || anime.name}">
+                            <div class="rating-badge">★ ${rating}</div>
                         </div>
                         <div class="card-content">
-                            <h2 class="anime-title">${anime.title}</h2>
-                            <div class="anime-sub">${anime.originalTitle}</div>
+                            <h2 class="anime-title">${anime.russian || anime.name}</h2>
+                            <div class="anime-sub">${anime.japanese || ''} (${anime.date || 'Н/Д'})</div>
                             <div class="genres">${genresHTML}</div>
-                            <p class="description">${anime.description}</p>
+                            <p class="description">${description}</p>
                         </div>
                     </div>
                 `;
