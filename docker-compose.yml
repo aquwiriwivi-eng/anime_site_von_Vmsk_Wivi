@@ -21,7 +21,7 @@ services:
      - frontend_net
      - backend_net
     volumes:
-     - "./python:/"
+     - "./python:/code/app"
     restart: unless-stopped
 
 # Use postgres/example user/password credentials
