@@ -3,7 +3,4 @@ LABEL author=vmks
 RUN apt-get update && apt-get install nginx -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 WORKDIR /var/www/html
 EXPOSE 80
-ENV OWNER="Vmsk Wivi"
-ENV MANY=No_many
-ENV ANIME_TOP="Bloom into you"
 CMD ["nginx", "-g", "daemon off;"]
