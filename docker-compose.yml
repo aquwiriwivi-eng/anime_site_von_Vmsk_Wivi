@@ -1,8 +1,8 @@
 services:
   nginx:
     build:
-      context: ./DockerFiles/
-      dockerfile: "Dockerfile_nginx"
+      context: .
+      dockerfile: "DockerFiles/Dockerfile_nginx"
     container_name: "nginx_anime_container"
     networks:
       - frontend_net
@@ -14,8 +14,8 @@ services:
 
   api:
     build:
-      context: ./DockerFiles/
-      dockerfile: Dockerfile_python_backend
+      context: .
+      dockerfile: "DockerFiles/Dockerfile_python_backend"
     container_name: "api_backend_container"
     networks:
      - frontend_net
