@@ -20,12 +20,29 @@ def get_conn():
 # const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
 #есть кусочек /api/search?q=
 # а дальше после $() являеться нашим текстом запроса, например "Атака Титанов"
-def anime_search(search_query, str):
+def anime_search(q: str):
+    search_pattern = f"%{q}%"
     with get_conn() as conn:
-        anime_search = conn.execute(
+        anime_rows = conn.execute(
             "SELECT id, shikimori_id, name, russian, japanese, date, mainurl FROM anime_list "
             "WHERE name ILIKE %s "
             "OR russian ILIKE %s "
             "OR japanese ILIKE %s",
-            (search_query, search_query, search_query),
+            (search_pattern, search_pattern, search_pattern),
         ).fetchall()
+
+        #Превращаем ответ postgress в json массив и отправляем в фронтенд
+        search_results = [
+        {
+            "id": r[0],
+            "shikimori_id": r[1],
+            "name": r[2],
+            "russian": r[3],
+            "japanese": r[4],
+            "date": str(r[5]) if r[5] else None,
+            "mainurl": r[6]
+        }
+        for r in anime_rows
+    ]
+
+    return search_results
