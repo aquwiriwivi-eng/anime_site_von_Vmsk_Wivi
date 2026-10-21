@@ -1,7 +1,7 @@
 *
 
-!Dockerfiles/
-!Dockerfiles/**
+!DockerFiles/
+!DockerFiles/**
 !docker-compose.yml
 !.gitignore
 !nginx/
