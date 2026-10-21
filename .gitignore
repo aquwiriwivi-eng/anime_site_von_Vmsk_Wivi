@@ -1,7 +1,7 @@
 *
 
-!Dockerfile_nginx
-!Dockerfile_python_backend
+!Dockerfiles/
+!Dockerfiles/**
 !docker-compose.yml
 !.gitignore
 !nginx/
