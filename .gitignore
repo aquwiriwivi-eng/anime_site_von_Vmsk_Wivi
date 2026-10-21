@@ -3,6 +3,7 @@
 !DockerFiles/
 !DockerFiles/**
 !docker-compose.yml
+!requirements.txt
 !.gitignore
 !nginx/
 !nginx/**
