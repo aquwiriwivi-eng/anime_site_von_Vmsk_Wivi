@@ -7,7 +7,7 @@ services:
     networks:
       - frontend_net
     ports:
-     - "8050:80"
+     - "80:80"
     volumes:
       - "./nginx/data:/var/www/html"
     restart: unless-stopped
