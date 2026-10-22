@@ -1,5 +1,8 @@
 *
 
+!.env.db.example
+!.env.api.example
+
 !README.md
 !DockerFiles/
 !DockerFiles/**
