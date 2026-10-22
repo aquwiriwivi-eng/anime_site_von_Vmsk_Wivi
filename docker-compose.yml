@@ -21,6 +21,11 @@ services:
      - backend_net
     volumes:
      - "./python:/code/app"
+    env_file:
+      - path: ./.env.api.example
+        required: true
+      - path: ./.env.api
+        required: false
     restart: unless-stopped
 
 # Use postgres/example user/password credentials
