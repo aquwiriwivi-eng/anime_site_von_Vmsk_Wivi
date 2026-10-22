@@ -8,6 +8,7 @@ services:
      - "80:80"
     volumes:
       - "./nginx/data:/usr/share/nginx/html"
+      - "./nginx/nginx_configuration:/etc/nginx/conf.d/"
     restart: unless-stopped
 
   api:
