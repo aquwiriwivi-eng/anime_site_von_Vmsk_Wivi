@@ -1,8 +1,6 @@
 services:
   nginx:
-    build:
-      context: .
-      dockerfile: "DockerFiles/Dockerfile_nginx"
+    image: 1.31.8-trixie
     container_name: "nginx_anime_container"
     networks:
       - frontend_net
