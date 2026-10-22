@@ -7,7 +7,7 @@ services:
     ports:
      - "80:80"
     volumes:
-      - "./nginx/data:/var/www/html"
+      - "./nginx/data:/usr/share/nginx/html"
     restart: unless-stopped
 
   api:
