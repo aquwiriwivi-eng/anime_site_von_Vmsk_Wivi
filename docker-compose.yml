@@ -44,6 +44,7 @@ services:
         required: false
     networks:
       - backend_net
+    container_name: "postgre_sql_container"
 
   adminer_sql:
     image: adminer:6
@@ -52,6 +53,7 @@ services:
       - 8051:8080
     networks:
       - backend_net
+    container_name: "adminer_container"
 
 networks:
   frontend_net:
