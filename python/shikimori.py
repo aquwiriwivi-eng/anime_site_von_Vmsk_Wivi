@@ -8,3 +8,15 @@ async def fetch_anime_from_shikimori(search_title: str):
   headers = {
       "User-Agent": "MyAnimeSiteProject"  # Можешь написать имя своего сайта
   }
+
+  shikimori_query = """{
+  animes(search: $search, limit 3, kind: "!special") {
+    id
+    name
+    russian
+    japanese
+    date
+    airedOn { date }
+    }
+  }
+  """
