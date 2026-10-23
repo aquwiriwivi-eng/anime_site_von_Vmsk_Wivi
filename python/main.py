@@ -26,7 +26,7 @@ def anime_search(q: str):
     search_pattern = f"%{q}%"
     with get_conn() as conn:
         anime_rows = conn.execute(
-            "SELECT id, shikimori_id, name, russian, japanese, date, mainurl FROM anime_list "
+            "SELECT id, shikimori_id, name, russian, japanese, date, originalurl, mainurl FROM anime_list "
             "WHERE name ILIKE %s "
             "OR russian ILIKE %s "
             "OR japanese ILIKE %s",
@@ -42,7 +42,8 @@ def anime_search(q: str):
             "russian": r[3],
             "japanese": r[4],
             "date": str(r[5]) if r[5] else None,
-            "mainurl": r[6]
+            "originalurl": r[6]
+            "mainUrl": r[7]
         }
         for r in anime_rows
     ]
