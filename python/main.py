@@ -5,6 +5,8 @@ import httpx #Чтобы общаться с Shikimori_api и использов
 from fastapi import FastAPI, HTTPException #Чтобы писать api
 from pydantic import BaseModel #чтобы писать api и задавать классы - хз что значит, но это надо, без этого никак!
 
+import python.shikimori import fetch_anime_from_shikimori
+
 app = FastAPI()
 
 def get_conn():
