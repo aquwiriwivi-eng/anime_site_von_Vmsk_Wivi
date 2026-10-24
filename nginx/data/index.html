@@ -44,7 +44,6 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('logo_front/background.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -776,6 +775,39 @@
             });
         }
 		
+		// Список всех фоновых изображений из папки /backgrounds/ (любые форматы) 
+		// ПИШИ В массив bgImages ТОЧНЫЕ НАЗВАНИЕ ФАЙЛОВ ИЗ ПАПКИ backgrounds
+		const bgImages = [
+			'bg_1.webp',
+			'anime10.webp',
+			'anime199.webp',
+			'vaime38.webp',
+			'wanime12.webp',
+			'anime439.webp',
+			'anime12.webp',
+			'anime10.webp'
+		];
+
+		function setRandomBackground() {
+			if (!bgImages || bgImages.length === 0) return;
+
+			// Выбираем случайную картинку из массива
+			const randomIndex = Math.floor(Math.random() * bgImages.length);
+			const randomImage = bgImages[randomIndex];
+
+			// Применяем выбранное фото через CSS-переменную или напрямую в псевдоэлемент/style
+			// Добавляем стиль для body::before через динамическое правило
+			const style = document.createElement('style');
+			style.textContent = `
+				body::before {
+					background-image: url('backgrounds/${randomImage}') !important;
+				}
+			`;
+			document.head.appendChild(style);
+		}
+
+		// Запускаем при загрузке страницы
+		setRandomBackground();
     </script>
 </body>
 </html>
