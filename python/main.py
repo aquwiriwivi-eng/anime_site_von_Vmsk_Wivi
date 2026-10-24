@@ -49,3 +49,14 @@ def anime_search(q: str):
     ]
 
     return search_results
+
+  try:
+        shikimori_data = await fetch_anime_from_shikimori(anime_title)
+        shikimori_animes = shikimori_data.get("data", {}).get("animes", [])
+    except Exception:
+        # Если Шикимори упал или нет интернета, мы не падаем всей ошибкой, 
+        # а просто возвращаем то, что нашлось в нашей локальной базе!
+        return {
+            "results": combined_results,
+            "api_status": "Shikimori unavailable, showing local results only"
+        }
