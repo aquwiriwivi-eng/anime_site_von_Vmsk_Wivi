@@ -50,6 +50,10 @@ def anime_search(q: str):
 
     return search_results
 
+  # Собираем ID тех аниме, которые уже есть в базе, чтобы не дублировать их
+  existing_shikimori_ids = {item["shikimori_id"] for item in local_results}
+  combined_results = list(local_results) # Начинаем формировать итоговый список
+
   try:
         shikimori_data = await fetch_anime_from_shikimori(anime_title)
         shikimori_animes = shikimori_data.get("data", {}).get("animes", [])

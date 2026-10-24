@@ -16,7 +16,6 @@ async def fetch_anime_from_shikimori(search_title: str):
         name
         russian
         japanese
-        date
         airedOn { date }
         poster { originalUrl mainUrl }
       }
