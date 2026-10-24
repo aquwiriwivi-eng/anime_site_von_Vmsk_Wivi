@@ -130,4 +130,4 @@ async def anime_search(
       conn.commit()
 
   # --- ШАГ 4. Возвращаем полный объединенный список пользователю ---
-  return {"results": combined_results}
+  return combined_results
