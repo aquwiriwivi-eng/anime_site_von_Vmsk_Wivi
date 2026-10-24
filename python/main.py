@@ -21,6 +21,29 @@ def get_conn():
   )
 
 
+@app.get("/api/random")
+def get_random_anime():
+  with get_conn() as conn:
+    anime_rows = conn.execute(
+        "SELECT id, shikimori_id, name, russian, japanese, date, originalurl,"
+        " mainurl FROM anime_list ORDER BY RANDOM() LIMIT 6"
+    ).fetchall()
+
+  return [
+      {
+          "id": r[0],
+          "shikimori_id": r[1],
+          "name": r[2],
+          "russian": r[3],
+          "japanese": r[4],
+          "date": str(r[5]) if r[5] else None,
+          "originalurl": r[6],
+          "mainurl": r[7],
+      }
+      for r in anime_rows
+  ]
+
+
 @app.get("/api/search")
 # Чекай // Обработчик отправки поисковой формы (AJAX/Fetch) там в строке  // Отправляем GET-запрос на бэкенд
 # const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
