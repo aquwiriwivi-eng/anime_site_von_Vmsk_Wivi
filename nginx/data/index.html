@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YummyAnime Lite — Каталог аниме</title>
+    <title>YummeAnime — Каталог аниме</title>
     <!-- Подключаем FontAwesome для иконок Telegram и WhatsApp -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -44,7 +44,6 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('logo_front/background.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -208,16 +207,35 @@
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
         }
-		
-        /* --- СЕКЦИЯ: АНИМЕ НЕДЕЛИ (БАННЕРЫ 16:9) --- */
+
+		/* --- СЕКЦИЯ: АНИМЕ НЕДЕЛИ (3 в ряд на ПК, 1 на телефоне) --- */
         .weekly-section {
             margin-bottom: 45px;
         }
 
         .weekly-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(3, 1fr); /* 3 в ряд на ПК */
             gap: 24px;
+        }
+
+        /* --- СЕКЦИЯ: ОСНОВНОЙ КАТАЛОГ (4 в ряд на ПК, 2 на телефоне) --- */
+        .anime-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 в ряд на ПК */
+            gap: 28px;
+        }
+
+        /* Адаптивность для телефонов и планшетов (экраны меньше 850px) */
+        @media (max-width: 850px) {
+            .weekly-grid {
+                grid-template-columns: 1fr; /* 1 в ряд для аниме недели на телефоне */
+            }
+
+            .anime-grid {
+                grid-template-columns: repeat(2, 1fr); /* 2 в ряд для каталога на телефоне */
+                gap: 16px;
+            }
         }
 
         .weekly-card {
@@ -300,13 +318,6 @@
         .weekly-subtitle {
             font-size: 12px;
             color: var(--accent-soft);
-        }
-
-        /* --- СЕКЦИЯ: ОСНОВНОЙ КАТАЛОГ --- */
-        .anime-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 28px;
         }
 
         .anime-card {
@@ -560,6 +571,17 @@
             transform: translateY(-3px);
             box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
         }
+		
+		/* Анимация для плавной смены текста placeholder */
+		.search-input {
+			transition: opacity 0.4s ease, transform 0.4s ease;
+		}
+
+		.search-input.fade-out {
+			opacity: 0;
+			transform: translateY(-4px);
+		}
+
     </style>
 </head>
 <body>
@@ -637,9 +659,9 @@
         </div>
     </footer>
 
-    <!-- Скрипт рендеринга данных -->
+	<!-- Скрипт рендеринга данных -->
     <script>
-        // 1. Данные для "Аниме недели" (Формат 16:9)
+        // 1. Данные для "Аниме недели" (Формат 16:9 остается статичным или его тоже можно потом перенести)
         const weeklyAnimeData = [
             {
                 id: 101,
@@ -661,37 +683,6 @@
             }
         ];
 
-        // 2. Основная база данных (Каталог из 3 элементов)
-        const animeData = [
-            {
-                id: 1,
-                title: "Атака титанов",
-                originalTitle: "Shingeki no Kyojin (2013)",
-                rating: "9.1",
-                genres: ["Экшен", "Драма", "Фэнтези"],
-                poster: "https://m.media-amazon.com/images/M/MVBmMzI1MGEyM2MtYmUwNC00M2I2LWI4MmItMzc4Y2VkYTNhMzA2XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
-                description: "Уже 100 лет человечество живёт за огромными стенами, защищающими от гигантских людоедов — титанов. Но в один день стена рушится, и мир Эрена Йегера меняется навсегда."
-            },
-            {
-                id: 2,
-                title: "Магическая битва",
-                originalTitle: "Jujutsu Kaisen (2020)",
-                rating: "8.7",
-                genres: ["Экшен", "Сёнэн", "Мистика"],
-                poster: "https://m.media-amazon.com/images/M/MVBmM2NmNmFlYjctN2E3MS00Y2VkLTg4M2QtYjY2ODkyMzBmOTE0XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
-                description: "Старшеклассник Юдзи Итадори обладает невероятной физической силой. Чтобы спасти друзей от проклятия, он проглатывает древний артефакт и сам становится вместилищем демона."
-            },
-            {
-                id: 3,
-                title: "Клинок, рассекающий демонов",
-                originalTitle: "Kimetsu no Yaiba (2019)",
-                rating: "8.6",
-                genres: ["Экшен", "Приключения", "Исторический"],
-                poster: "https://m.media-amazon.com/images/M/MVBNzJkY2Y2Y2YtYTI3NC00YjBhLWE1NDgtM2MzOGM5NTk5NzRiXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
-                description: "Танджиро Камадо возвращается домой и находит свою семью убитой демоном, а сестра Незуко превращена в монстра. Танджиро решает стать истребителем демонов, чтобы исцелить сестру."
-            }
-        ];
-
         // Рендер "Аниме недели"
         function renderWeeklyAnime(data) {
             const container = document.getElementById('weeklyGrid');
@@ -710,61 +701,80 @@
             `).join('');
         }
 
-		// Рендер основного каталога под ваши поля БД (russian, japanese, date, mainurl)
+        // Рендер основного каталога из базы данных PostgreSQL
         function renderAnimeCards(data) {
             const grid = document.getElementById('animeGrid');
+            
+            if (!data || data.length === 0) {
+                grid.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">В базе данных пока пусто. Воспользуйтесь поиском выше, чтобы добавить аниме!</p>';
+                return;
+            }
+
             grid.innerHTML = data.map(anime => {
-                const genres = anime.genres ? anime.genres : ["Аниме"];
-                const genresHTML = genres.map(genre => `<span class="genre-tag">${genre}</span>`).join('');
-                const description = anime.description ? anime.description : "Описание отсутствует.";
-                const rating = anime.rating ? anime.rating : "--";
+                const title = anime.russian || anime.name || "Без названия";
+                const japanese = anime.japanese ? anime.japanese : "";
+                const date = anime.date ? anime.date : "Н/Д";
+                const poster = anime.mainurl || anime.originalurl || 'https://via.placeholder.com/300x400/280d20/f78da7?text=No+Image';
 
                 return `
                     <div class="anime-card">
                         <div class="poster-wrapper">
-                            <img class="poster-img" src="${anime.mainurl}" alt="${anime.russian || anime.name}">
-                            <div class="rating-badge">★ ${rating}</div>
+                            <img class="poster-img" src="${poster}" alt="${title}">
+                            <div class="rating-badge">★ База</div>
                         </div>
                         <div class="card-content">
-                            <h2 class="anime-title">${anime.russian || anime.name}</h2>
-                            <div class="anime-sub">${anime.japanese || ''} (${anime.date || 'Н/Д'})</div>
-                            <div class="genres">${genresHTML}</div>
-                            <p class="description">${description}</p>
+                            <h2 class="anime-title">${title}</h2>
+                            <div class="anime-sub">${japanese} (${date})</div>
+                            <div class="genres">
+                                <span class="genre-tag">Аниме</span>
+                            </div>
+                            <p class="description">Аниме успешно сохранено в локальной базе данных сайта.</p>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        // Инициализация при загрузке
+        // Функция загрузки случайных аниме из нашей базы при старте сайта
+        async function loadRandomAnime() {
+            try {
+                const response = await fetch('/api/random');
+                if (!response.ok) throw new Error('Ошибка загрузки каталога');
+                
+                const randomAnimeList = await response.json();
+                renderAnimeCards(randomAnimeList);
+            } catch (error) {
+                console.error('Не удалось загрузить каталог:', error);
+                document.getElementById('animeGrid').innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">Ошибка подключения к базе данных :(</p>';
+            }
+        }
+
+        // Инициализация при загрузке страницы
         renderWeeklyAnime(weeklyAnimeData);
-        renderAnimeCards(animeData);
+        loadRandomAnime(); // <--- Загружаем случайные аниме из базы вместо заглушек!
 		
 		// Обработчик отправки поисковой формы (AJAX/Fetch)
         const searchForm = document.querySelector('.search-form');
         if (searchForm) {
             searchForm.addEventListener('submit', async (e) => {
-                e.preventDefault(); // Отменяем перезагрузку страницы
+                e.preventDefault();
 
                 const query = document.querySelector('.search-input').value.trim();
                 if (!query) return;
 
                 try {
-                    // Отправляем GET-запрос на бэкенд
                     const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-                    
                     if (!response.ok) throw new Error('Ошибка сервера');
 
-                    const searchResults = await response.json();
+                    const jsonResponse = await response.json();
+                    const searchResults = jsonResponse.results || jsonResponse; // поддержка обоих форматов
 
-                    // Меняем заголовок секции каталога под результаты
                     const sectionTitle = document.querySelector('.anime-grid').previousElementSibling;
                     if (sectionTitle) {
                         sectionTitle.textContent = `Результаты поиска: "${query}"`;
                     }
 
-                    // Отрисовываем найденные карточки или сообщение об ошибке
-                    if (searchResults.length > 0) {
+                    if (searchResults && searchResults.length > 0) {
                         renderAnimeCards(searchResults);
                     } else {
                         document.getElementById('animeGrid').innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">Ничего не найдено :(</p>';
@@ -776,6 +786,97 @@
             });
         }
 		
+		// Список всех фоновых изображений из папки /backgrounds/ (любые форматы) 
+		// ПИШИ В массив bgImages ТОЧНЫЕ НАЗВАНИЕ ФАЙЛОВ ИЗ ПАПКИ backgrounds
+		const bgImages = [
+			'bg_1.webp',
+			'anime10.webp',
+			'anime199.webp',
+			'vaime38.webp',
+			'wanime12.webp',
+			'anime439.webp',
+			'anime12.webp',
+			'anime10.webp'
+		];
+
+		function setRandomBackground() {
+			if (!bgImages || bgImages.length === 0) return;
+
+			// Выбираем случайную картинку из массива
+			const randomIndex = Math.floor(Math.random() * bgImages.length);
+			const randomImage = bgImages[randomIndex];
+
+			// Применяем выбранное фото через CSS-переменную или напрямую в псевдоэлемент/style
+			// Добавляем стиль для body::before через динамическое правило
+			const style = document.createElement('style');
+			style.textContent = `
+				body::before {
+					background-image: url('backgrounds/${randomImage}') !important;
+				}
+			`;
+			document.head.appendChild(style);
+		}
+
+		// Запускаем при загрузке страницы
+		setRandomBackground();
+		
+		
+		
+		// Массив с текстами для поиска
+		const searchPlaceholders = [
+			"Поиск аниме по названию или жанрам...",
+			"Что прикажете, моя госпожа?",
+			"Я найду для тебя абсолютно все, мой ангелочек!",
+			"Напиши название аниме на русском, английском или японском...",
+			"お好きに召ませ さばかりに強か",
+			"I wanna be with you^^",
+			"Можно тебя в щечку чмокнуть))",
+			"Найдем Аниме мечты на Yume-Anime"
+		];
+
+		function initRandomPlaceholderRotator() {
+			const input = document.querySelector('.search-input');
+			if (!input || searchPlaceholders.length === 0) return;
+
+			// Вспомогательная функция для получения случайного индекса (с исключением текущего)
+			function getRandomIndex(exclude = -1) {
+				if (searchPlaceholders.length <= 1) return 0;
+				let randomIndex;
+				do {
+					randomIndex = Math.floor(Math.random() * searchPlaceholders.length);
+				} while (randomIndex === exclude);
+				return randomIndex;
+			}
+
+			// 1. Устанавливаем случайную фразу СРАЗУ при загрузке страницы
+			let currentIndex = getRandomIndex();
+			input.placeholder = searchPlaceholders[currentIndex];
+
+			// 2. Запускаем интервал смены каждые 10 секунд
+			setInterval(() => {
+				// Не меняем текст, если пользователь кликнул в поле или уже вводит текст
+				if (document.activeElement === input || input.value.trim() !== '') {
+					return;
+				}
+
+				// Запускаем плавное исчезновение
+				input.classList.add('fade-out');
+
+				setTimeout(() => {
+					// Выбираем следующий случайный индекс (не повторяя текущий)
+					currentIndex = getRandomIndex(currentIndex);
+					
+					// Меняем текст и возвращаем видимость
+					input.placeholder = searchPlaceholders[currentIndex];
+					input.classList.remove('fade-out');
+				}, 400); // 400ms — время анимации в CSS
+				
+			}, 4000); // 10000ms = 10 секунд
+		}
+
+		// Запускаем ротацию при загрузке страницы
+		initRandomPlaceholderRotator();
+
     </script>
 </body>
 </html>
