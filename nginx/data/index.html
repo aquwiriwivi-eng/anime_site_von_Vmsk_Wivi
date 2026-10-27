@@ -571,6 +571,17 @@
             transform: translateY(-3px);
             box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
         }
+		
+		/* Анимация для плавной смены текста placeholder */
+		.search-input {
+			transition: opacity 0.4s ease, transform 0.4s ease;
+		}
+
+		.search-input.fade-out {
+			opacity: 0;
+			transform: translateY(-4px);
+		}
+
     </style>
 </head>
 <body>
@@ -808,6 +819,64 @@
 
 		// Запускаем при загрузке страницы
 		setRandomBackground();
+		
+		
+		
+		// Массив с текстами для поиска
+		const searchPlaceholders = [
+			"Поиск аниме по названию или жанрам...",
+			"Что прикажете, моя госпожа?",
+			"Я найду для тебя абсолютно все, мой ангелочек!",
+			"Напиши название аниме на русском, английском или японском...",
+			"お好きに召ませ さばかりに強か",
+			"I wanna be with you^^",
+			"Можно тебя в щечку чмокнуть))",
+			"Найдем Аниме мечты на Yume-Anime"
+		];
+
+		function initRandomPlaceholderRotator() {
+			const input = document.querySelector('.search-input');
+			if (!input || searchPlaceholders.length === 0) return;
+
+			// Вспомогательная функция для получения случайного индекса (с исключением текущего)
+			function getRandomIndex(exclude = -1) {
+				if (searchPlaceholders.length <= 1) return 0;
+				let randomIndex;
+				do {
+					randomIndex = Math.floor(Math.random() * searchPlaceholders.length);
+				} while (randomIndex === exclude);
+				return randomIndex;
+			}
+
+			// 1. Устанавливаем случайную фразу СРАЗУ при загрузке страницы
+			let currentIndex = getRandomIndex();
+			input.placeholder = searchPlaceholders[currentIndex];
+
+			// 2. Запускаем интервал смены каждые 10 секунд
+			setInterval(() => {
+				// Не меняем текст, если пользователь кликнул в поле или уже вводит текст
+				if (document.activeElement === input || input.value.trim() !== '') {
+					return;
+				}
+
+				// Запускаем плавное исчезновение
+				input.classList.add('fade-out');
+
+				setTimeout(() => {
+					// Выбираем следующий случайный индекс (не повторяя текущий)
+					currentIndex = getRandomIndex(currentIndex);
+					
+					// Меняем текст и возвращаем видимость
+					input.placeholder = searchPlaceholders[currentIndex];
+					input.classList.remove('fade-out');
+				}, 400); // 400ms — время анимации в CSS
+				
+			}, 4000); // 10000ms = 10 секунд
+		}
+
+		// Запускаем ротацию при загрузке страницы
+		initRandomPlaceholderRotator();
+
     </script>
 </body>
 </html>
