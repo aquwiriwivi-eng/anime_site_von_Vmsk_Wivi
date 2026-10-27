@@ -6,6 +6,8 @@
 
 ---
 
+![alt text](image.png)
+
 ## 🛠 Технологический стек
 
 * **Backend:** Python 3.14, FastAPI, `uvicorn`, `httpx` (асинхронные запросы)
