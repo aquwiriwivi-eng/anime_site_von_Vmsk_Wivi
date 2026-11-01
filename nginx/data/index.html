@@ -722,7 +722,8 @@
         }
 
 
-		// Рендер основного каталога из базы данных PostgreSQLлога
+
+		// Рендер основного каталога из базы данных PostgreSQL
 		function renderAnimeCards(data) {
 			const grid = document.getElementById('animeGrid');
 			
@@ -733,22 +734,22 @@
 
 			grid.innerHTML = data.map(anime => {
 				const id = anime.id || anime.shikimori_id || 1; 
-				const russian = anime.russian || anime.russian || "Название отсутствует";
-				const name = anime.name || anime.name || "Designation do not exist";
-				const japanese = anime.japanese ? anime.japanese : "名前はあいません";
-				const date = anime.date ? anime.date : "Н/Д";
+				const russian = anime.russian || "Без названия"; // Название по-русски
+				const japanese = anime.japanese || "";           // По-японски (хираганой/кандзи)
+				const name = anime.name || "";                   // Ромадзи / по-английски
+				const date = anime.date || "Н/Д";                // Дата
 				const poster = anime.mainurl || anime.originalurl || 'https://via.placeholder.com/300x400/280d20/f78da7?text=No+Image';
 
 				return `
 					<a href="anime_description.html?id=${id}" class="anime-card-link">
 						<div class="anime-card">
 							<div class="poster-wrapper">
-								<img class="poster-img" src="${poster}" alt="${title}">
+								<img class="poster-img" src="${poster}" alt="${russian}">
 								<div class="rating-badge">★ База</div>
 							</div>
 							<div class="card-content">
-								<h2 class="anime-title">${title}</h2>
-								<div class="anime-sub">${japanese} (${date})</div>
+								<h2 class="anime-title">${russian}</h2>
+								<div class="anime-sub">${japanese} ${name ? '— ' + name : ''} (${date})</div>
 								<div class="genres">
 									<span class="genre-tag">Аниме</span>
 								</div>
