@@ -179,8 +179,9 @@ async def anime_search_by_id(
           "russian": r[3],
           "japanese": r[4],
           "date": str(r[5]) if r[5] else None,
-          "originalurl": r[6],
-          "mainurl": r[7],
+          "description": r[6],
+          "originalurl": r[7],
+          "mainurl": r[8],
       }
       for r in anime_rows
   ]
