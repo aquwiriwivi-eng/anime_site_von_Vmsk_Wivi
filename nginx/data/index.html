@@ -582,24 +582,43 @@
 			transform: translateY(-4px);
 		}
 		
-		/* Ссылка-обертка для карточки каталога */
-		.anime-card-link {
+		/* Стили для кликабельной карточки аниме недели */
+		a.weekly-card {
 			display: flex;
 			flex-direction: column;
+			background-color: var(--card-bg);
+			border-radius: 16px;
+			overflow: hidden;
+			border: 1px solid var(--card-border);
+			position: relative;
 			text-decoration: none;
 			color: inherit;
-			height: 100%;
+			transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 		}
 
-		.anime-card {
+		a.weekly-card:hover {
+			transform: translateY(-6px);
+			border-color: var(--accent-color);
+			box-shadow: 0 12px 30px rgba(236, 72, 153, 0.25);
+		}
+
+		/* Стили для кликабельной карточки основного каталога */
+		a.anime-card {
+			display: flex;
+			flex-direction: column;
 			background-color: var(--card-bg);
 			border-radius: 14px;
 			overflow: hidden;
 			border: 1px solid var(--card-border);
+			text-decoration: none;
+			color: inherit;
 			transition: transform 0.2s ease, box-shadow 0.2s ease;
-			display: flex;
-			flex-direction: column;
-			height: 100%; /* Растягивает карточку на всю высоту ячейки сетки */
+		}
+
+		a.anime-card:hover {
+			transform: translateY(-6px);
+			border-color: rgba(236, 72, 153, 0.5);
+			box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 		}
 
     </style>
@@ -704,24 +723,22 @@
         ];
 		
         // Рендер "Аниме недели"
-        function renderWeeklyAnime(data) {
-            const container = document.getElementById('weeklyGrid');
-            container.innerHTML = data.map(item => `
-                <div class="weekly-card">
-                    <div class="weekly-art-wrapper">
-                        <img class="weekly-art-img" src="${item.art16x9}" alt="${item.title}">
-                        <div class="weekly-art-overlay"></div>
-                        <div class="weekly-badge">Топ недели</div>
-                        <div class="weekly-content">
-                            <h3 class="weekly-title">${item.title}</h3>
-                            <div class="weekly-subtitle">${item.subtitle}</div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-
+		function renderWeeklyAnime(data) {
+			const container = document.getElementById('weeklyGrid');
+			container.innerHTML = data.map(item => `
+				<a href="anime.html?id=${item.id}" class="weekly-card">
+					<div class="weekly-art-wrapper">
+						<img class="weekly-art-img" src="${item.art16x9}" alt="${item.title}">
+						<div class="weekly-art-overlay"></div>
+						<div class="weekly-badge">Топ недели</div>
+						<div class="weekly-content">
+							<h3 class="weekly-title">${item.title}</h3>
+							<div class="weekly-subtitle">${item.subtitle}</div>
+						</div>
+					</div>
+				</a>
+			`).join('');
+		}
 
 		// Рендер основного каталога из базы данных PostgreSQL
 		function renderAnimeCards(data) {
@@ -734,27 +751,25 @@
 
 			grid.innerHTML = data.map(anime => {
 				const id = anime.id || anime.shikimori_id || 1; 
-				const russian = anime.russian || "Без названия"; // Название по-русски
-				const japanese = anime.japanese || "";           // По-японски (хираганой/кандзи)
-				const name = anime.name || "";                   // Ромадзи / по-английски
-				const date = anime.date || "Н/Д";                // Дата
+				const russian = anime.russian || "Без названия";
+				const japanese = anime.japanese || "";
+				const name = anime.name || "";
+				const date = anime.date || "Н/Д";
 				const poster = anime.mainurl || anime.originalurl || 'https://via.placeholder.com/300x400/280d20/f78da7?text=No+Image';
 
 				return `
-					<a href="anime_description.html?id=${id}" class="anime-card-link">
-						<div class="anime-card">
-							<div class="poster-wrapper">
-								<img class="poster-img" src="${poster}" alt="${russian}">
-								<div class="rating-badge">★ База</div>
+					<a href="anime_description.html?id=${id}" class="anime-card">
+						<div class="poster-wrapper">
+							<img class="poster-img" src="${poster}" alt="${russian}">
+							<div class="rating-badge">★ База</div>
+						</div>
+						<div class="card-content">
+							<h2 class="anime-title">${russian}</h2>
+							<div class="anime-sub">${japanese} ${name ? '— ' + name : ''} (${date})</div>
+							<div class="genres">
+								<span class="genre-tag">Аниме</span>
 							</div>
-							<div class="card-content">
-								<h2 class="anime-title">${russian}</h2>
-								<div class="anime-sub">${japanese} ${name ? '— ' + name : ''} (${date})</div>
-								<div class="genres">
-									<span class="genre-tag">Аниме</span>
-								</div>
-								<p class="description">Нажмите, чтобы открыть подробное описание и плеер.</p>
-							</div>
+							<p class="description">Нажмите, чтобы открыть подробное описание и плеер.</p>
 						</div>
 					</a>
 				`;
