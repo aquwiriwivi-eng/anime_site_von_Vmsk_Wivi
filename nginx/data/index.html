@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YummeAnime — Каталог аниме</title>
+    <title>Yume-Anime — Каталог аниме</title>
     <!-- Подключаем FontAwesome для иконок Telegram и WhatsApp -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -713,10 +713,10 @@
 			}
 
 			grid.innerHTML = data.map(anime => {
-				// Убедитесь, что у каждого объекта аниме есть уникальный id из базы данных
 				const id = anime.id || anime.shikimori_id || 1; 
-				const title = anime.russian || anime.name || "Без названия";
-				const japanese = anime.japanese ? anime.japanese : "";
+				const russian = anime.russian || anime.russian || "Название отсутствует";
+				const name = anime.name || anime.name || "Designation do not exist";
+				const japanese = anime.japanese ? anime.japanese : "名前はあいません";
 				const date = anime.date ? anime.date : "Н/Д";
 				const poster = anime.mainurl || anime.originalurl || 'https://via.placeholder.com/300x400/280d20/f78da7?text=No+Image';
 
@@ -741,7 +741,7 @@
 			}).join('');
 		}
 
-        // Функция загрузки случайных аниме из нашей базы при старте сайта
+        // Функция загрузки случайных аниме из базы при старте сайта
         async function loadRandomAnime() {
             try {
                 const response = await fetch('/api/random');
