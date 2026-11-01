@@ -702,8 +702,27 @@
                 art16x9: "https://images.hdqwalls.com/wallpapers/demon-slayer-kimetsu-no-yaiba-4k-2020-e2.jpg"
             }
         ];
+		
+        // Рендер "Аниме недели"
+        function renderWeeklyAnime(data) {
+            const container = document.getElementById('weeklyGrid');
+            container.innerHTML = data.map(item => `
+                <div class="weekly-card">
+                    <div class="weekly-art-wrapper">
+                        <img class="weekly-art-img" src="${item.art16x9}" alt="${item.title}">
+                        <div class="weekly-art-overlay"></div>
+                        <div class="weekly-badge">Топ недели</div>
+                        <div class="weekly-content">
+                            <h3 class="weekly-title">${item.title}</h3>
+                            <div class="weekly-subtitle">${item.subtitle}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-		// Обновленный рендер "Аниме недели" и основного каталога
+
+		// Рендер основного каталога из базы данных PostgreSQLлога
 		function renderAnimeCards(data) {
 			const grid = document.getElementById('animeGrid');
 			
