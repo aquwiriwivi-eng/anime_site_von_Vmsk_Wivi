@@ -166,7 +166,7 @@ async def anime_search_by_id(anime_id: int):
         "SELECT id, shikimori_id, name, russian, japanese, date, description, originalurl, mainurl "
         "FROM anime_list "
         "WHERE id = %s ",
-        (anime_id),
+        (anime_id,),
     ).fetchone()
     
     if not anime_all_desc:
