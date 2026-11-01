@@ -18,6 +18,7 @@ async def fetch_anime_from_shikimori(search_title: str):
         japanese
         airedOn { date }
         poster { originalUrl mainUrl }
+        description
       }
   }
   """
@@ -35,6 +36,6 @@ async def fetch_anime_from_shikimori(search_title: str):
     )
 
   if response.status_code != 200:
-    raise Exception(f"Ошибка API Шикимори:       ")
+    raise Exception(f"Ошибка API Шикимори: статус {response.status_code}, ответ: {response.text}")
 
   return response.json()

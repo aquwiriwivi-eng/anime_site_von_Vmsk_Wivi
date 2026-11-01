@@ -99,7 +99,5 @@ docker compose up -d
 
 Для входа в Adminer выберите систему **PostgreSQL**, сервер `postgre_sql` и укажите данные из
 
-## 👨‍💻 Автор
-
 С любовью от **Vmsk_Wivi** 🌸
 =======
