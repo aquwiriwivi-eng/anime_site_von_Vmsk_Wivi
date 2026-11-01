@@ -683,57 +683,63 @@
             }
         ];
 
-        // Рендер "Аниме недели"
-        function renderWeeklyAnime(data) {
-            const container = document.getElementById('weeklyGrid');
-            container.innerHTML = data.map(item => `
-                <div class="weekly-card">
-                    <div class="weekly-art-wrapper">
-                        <img class="weekly-art-img" src="${item.art16x9}" alt="${item.title}">
-                        <div class="weekly-art-overlay"></div>
-                        <div class="weekly-badge">Топ недели</div>
-                        <div class="weekly-content">
-                            <h3 class="weekly-title">${item.title}</h3>
-                            <div class="weekly-subtitle">${item.subtitle}</div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
+		// Обновленный рендер "Аниме недели"
+		function renderWeeklyAnime(data) {
+			const container = document.getElementById('weeklyGrid');
+			container.innerHTML = data.map(item => `
+				<a href="anime.html?id=${item.id}" style="text-decoration: none; color: inherit;">
+					<div class="weekly-card">
+						<div class="weekly-art-wrapper">
+							<img class="weekly-art-img" src="${item.art16x9}" alt="${item.title}">
+							<div class="weekly-art-overlay"></div>
+							<div class="weekly-badge">Топ недели</div>
+							<div class="weekly-content">
+								<h3 class="weekly-title">${item.title}</h3>
+								<div class="weekly-subtitle">${item.subtitle}</div>
+							</div>
+						</div>
+					</div>
+				</a>
+			`).join('');
+		}
 
-        // Рендер основного каталога из базы данных PostgreSQL
-        function renderAnimeCards(data) {
-            const grid = document.getElementById('animeGrid');
-            
-            if (!data || data.length === 0) {
-                grid.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">В базе данных пока пусто. Воспользуйтесь поиском выше, чтобы добавить аниме!</p>';
-                return;
-            }
+		// Обновленный рендер основного каталога из базы данных PostgreSQL
+		function renderAnimeCards(data) {
+			const grid = document.getElementById('animeGrid');
+			
+			if (!data || data.length === 0) {
+				grid.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">В базе данных пока пусто. Воспользуйтесь поиском выше, чтобы добавить аниме!</p>';
+				return;
+			}
 
-            grid.innerHTML = data.map(anime => {
-                const title = anime.russian || anime.name || "Без названия";
-                const japanese = anime.japanese ? anime.japanese : "";
-                const date = anime.date ? anime.date : "Н/Д";
-                const poster = anime.mainurl || anime.originalurl || 'https://via.placeholder.com/300x400/280d20/f78da7?text=No+Image';
+			grid.innerHTML = data.map(anime => {
+				// Убедитесь, что у каждого объекта аниме есть уникальный id из базы данных
+				const id = anime.id || anime.shikimori_id || 1; 
+				const title = anime.russian || anime.name || "Без названия";
+				const japanese = anime.japanese ? anime.japanese : "";
+				const date = anime.date ? anime.date : "Н/Д";
+				const poster = anime.mainurl || anime.originalurl || 'https://via.placeholder.com/300x400/280d20/f78da7?text=No+Image';
 
-                return `
-                    <div class="anime-card">
-                        <div class="poster-wrapper">
-                            <img class="poster-img" src="${poster}" alt="${title}">
-                            <div class="rating-badge">★ База</div>
-                        </div>
-                        <div class="card-content">
-                            <h2 class="anime-title">${title}</h2>
-                            <div class="anime-sub">${japanese} (${date})</div>
-                            <div class="genres">
-                                <span class="genre-tag">Аниме</span>
-                            </div>
-                            <p class="description">Аниме успешно сохранено в локальной базе данных сайта.</p>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
+				return `
+					<a href="anime.html?id=${id}" style="text-decoration: none; color: inherit;" class="anime-card-link">
+						<div class="anime-card">
+							<div class="poster-wrapper">
+								<img class="poster-img" src="${poster}" alt="${title}">
+								<div class="rating-badge">★ База</div>
+							</div>
+							<div class="card-content">
+								<h2 class="anime-title">${title}</h2>
+								<div class="anime-sub">${japanese} (${date})</div>
+								<div class="genres">
+									<span class="genre-tag">Аниме</span>
+								</div>
+								<p class="description">Нажмите, чтобы открыть подробное описание и плеер.</p>
+							</div>
+						</div>
+					</a>
+				`;
+			}).join('');
+		}
 
         // Функция загрузки случайных аниме из нашей базы при старте сайта
         async function loadRandomAnime() {

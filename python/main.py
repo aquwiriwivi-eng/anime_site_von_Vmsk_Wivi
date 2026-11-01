@@ -57,8 +57,8 @@ async def anime_search(
   # --- ШАГ 1. Сначала ищем аниме в нашей локальной базе PostgreSQL ---
   with get_conn() as conn:
     anime_rows = conn.execute(
-        "SELECT id, shikimori_id, name, russian, japanese, date, originalurl,"
-        " mainurl FROM anime_list "
+        "SELECT id, shikimori_id, name, russian, japanese, date, originalurl, "
+        "mainurl FROM anime_list "
         "WHERE name ILIKE %s "
         "OR russian ILIKE %s "
         "OR japanese ILIKE %s",
@@ -75,7 +75,7 @@ async def anime_search(
           "russian": r[3],
           "japanese": r[4],
           "date": str(r[5]) if r[5] else None,
-          "originalurl": r[6],  # Поставлена запятая, которой не хватало!
+          "originalurl": r[6],
           "mainurl": r[7],
       }
       for r in anime_rows
@@ -154,3 +154,33 @@ async def anime_search(
 
   # --- ШАГ 4. Возвращаем полный объединенный список пользователю ---
   return combined_results
+
+  # Забириаем из POSTGRES подробные данные про одно аниме по id этого аниме
+#Больше данных добавлю позже.
+@app.get("/api/search_id")
+async def anime_search_by_id(
+    q: int,
+):
+  search_pattern = f"%{q}%"
+  with get_conn() as conn:
+    anime_rows = conn.execute(
+        "SELECT id, shikimori_id, name, russian, japanese, date, description, originalurl, mainurl"
+        "mainurl FROM anime_list "
+        "WHERE id = %s "
+        (search_pattern),
+    ).fetchall()
+    
+    # Превращаем ответ postgres в JSON-совместимый массив как в app.get search
+  return [
+      {
+          "id": r[0],
+          "shikimori_id": r[1],
+          "name": r[2],
+          "russian": r[3],
+          "japanese": r[4],
+          "date": str(r[5]) if r[5] else None,
+          "originalurl": r[6],
+          "mainurl": r[7],
+      }
+      for r in anime_rows
+  ]

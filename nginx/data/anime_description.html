@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подробная информация — Yume-Anime</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #190813;
+            --card-bg: #280d20;
+            --card-border: #4a183d;
+            --accent-color: #ec4899;
+            --accent-soft: #f472b6;
+            --text-main: #fdf2f8;
+            --text-muted: #d8b4fe;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .back-link {
+            display: inline-block;
+            color: var(--accent-soft);
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .anime-detail-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 30px;
+            display: flex;
+            gap: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .anime-poster {
+            width: 300px;
+            height: 420px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 2px solid var(--card-border);
+        }
+        .anime-info h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .anime-info .sub {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .anime-info p {
+            line-height: 1.6;
+            color: #cbd5e1;
+            margin-top: 15px;
+        }
+        @media (max-width: 768px) {
+            .anime-detail-card {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .anime-poster {
+                width: 100%;
+                max-width: 280px;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Вернуться на главную</a>
+        
+        <div id="animeDetails" style="color: var(--text-muted);">
+            Загрузка информации об аниме...
+        </div>
+    </div>
+
+    <script>
+        // Считываем ID из параметров URL (например: anime.html?id=12)
+        const urlParams = new URLSearchParams(window.location.search);
+        const animeId = urlParams.get('id');
+
+        async function loadAnimeDetails() {
+            if (!animeId) {
+                document.getElementById('animeDetails').innerHTML = 'Аниме не найдено.';
+                return;
+            }
+
+            try {
+                // Запрос к бэкенду за подробными данными конкретного аниме
+                const response = await fetch(`/api/anime/${animeId}`);
+                if (!response.ok) throw new Error('Аниме не найдено в базе данных');
+
+                const anime = await response.json();
+
+                const russian = anime.russian || anime.name || "Без названия";
+				const name = anime.name || anime.name || "No designation";
+                const japanese = anime.japanese || "名前はありません";　
+                const date = anime.date || "Н/Д";
+                const poster = anime.mainurl || anime.originalurl || 'https://via.placeholder.com/300x400';
+                const description = anime.description || "Описание для этого аниме пока не добавлено.";
+
+                document.getElementById('animeDetails').innerHTML = `
+                    <div class="anime-detail-card">
+                        <img class="anime-poster" src="${poster}" alt="${title}">
+                        <div class="anime-info">
+                            <h1>${title}</h1>
+                            <div class="sub">${japanese} (${date})</div>
+                            <div class="genres" style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">
+                                <span class="genre-tag" style="background: #3b1430; color: var(--accent-soft); padding: 4px 10px; border-radius: 6px; font-size: 12px;">Аниме</span>
+                            </div>
+                            <h3>Описание</h3>
+                            <p>${description}</p>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error(error);
+                document.getElementById('animeDetails').innerHTML = 'Не удалось загрузить информацию об аниме :(';
+            }
+        }
+
+        loadAnimeDetails();
+    </script>
+</body>
+</html>
