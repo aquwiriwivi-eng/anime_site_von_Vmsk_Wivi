@@ -687,7 +687,7 @@
 		function renderWeeklyAnime(data) {
 			const container = document.getElementById('weeklyGrid');
 			container.innerHTML = data.map(item => `
-				<a href="anime.html?id=${item.id}" style="text-decoration: none; color: inherit;">
+				<a href="anime_description.html?id=${item.id}" style="text-decoration: none; color: inherit;">
 					<div class="weekly-card">
 						<div class="weekly-art-wrapper">
 							<img class="weekly-art-img" src="${item.art16x9}" alt="${item.title}">
@@ -721,7 +721,7 @@
 				const poster = anime.mainurl || anime.originalurl || 'https://via.placeholder.com/300x400/280d20/f78da7?text=No+Image';
 
 				return `
-					<a href="anime.html?id=${id}" style="text-decoration: none; color: inherit;" class="anime-card-link">
+					<a href="anime_description.html?id=${id}" style="text-decoration: none; color: inherit;" class="anime-card-link">
 						<div class="anime-card">
 							<div class="poster-wrapper">
 								<img class="poster-img" src="${poster}" alt="${title}">

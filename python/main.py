@@ -162,25 +162,25 @@ async def anime_search( q: str, ):  # ВАЖНО: async def нужен, так �
 @app.get("/api/anime/{anime_id}")
 async def anime_search_by_id(anime_id: int):
   with get_conn() as conn:
-    anime_rows = conn.execute(
+    anime_all_desc = conn.execute(
         "SELECT id, shikimori_id, name, russian, japanese, date, description, originalurl, mainurl "
         "FROM anime_list "
-        "WHERE id = %s "
+        "WHERE id = %s ",
         (anime_id),
     ).fetchone()
     
-    if not row:
-            raise HTTPException(status_code=404, detail="Аниме не найдено в базе данных")
+    if not anime_all_desc:
+        raise HTTPException(status_code=404, detail="Аниме не найдено в базе данных")
     
     # Превращаем ответ postgres в JSON-совместимый массив как в app.get search
   return{
-          "id": r[0],
-          "shikimori_id": r[1],
-          "name": r[2],
-          "russian": r[3],
-          "japanese": r[4],
-          "date": str(r[5]) if r[5] else None,
-          "description": r[6],
-          "originalurl": r[7],
-          "mainurl": r[8],
+          "id": anime_all_desc[0],
+          "shikimori_id": anime_all_desc[1],
+          "name": anime_all_desc[2],
+          "russian": anime_all_desc[3],
+          "japanese": anime_all_desc[4],
+          "date": str(anime_all_desc[5]) if anime_all_desc[5] else None,
+          "description": anime_all_desc[6],
+          "originalurl": anime_all_desc[7],
+          "mainurl": anime_all_desc[8],
     }
