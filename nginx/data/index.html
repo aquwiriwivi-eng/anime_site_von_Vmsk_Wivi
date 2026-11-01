@@ -581,6 +581,26 @@
 			opacity: 0;
 			transform: translateY(-4px);
 		}
+		
+		/* Ссылка-обертка для карточки каталога */
+		.anime-card-link {
+			display: flex;
+			flex-direction: column;
+			text-decoration: none;
+			color: inherit;
+			height: 100%;
+		}
+
+		.anime-card {
+			background-color: var(--card-bg);
+			border-radius: 14px;
+			overflow: hidden;
+			border: 1px solid var(--card-border);
+			transition: transform 0.2s ease, box-shadow 0.2s ease;
+			display: flex;
+			flex-direction: column;
+			height: 100%; /* Растягивает карточку на всю высоту ячейки сетки */
+		}
 
     </style>
 </head>
@@ -682,28 +702,27 @@
                 art16x9: "https://images.hdqwalls.com/wallpapers/demon-slayer-kimetsu-no-yaiba-4k-2020-e2.jpg"
             }
         ];
+		
+        // Рендер "Аниме недели"
+        function renderWeeklyAnime(data) {
+            const container = document.getElementById('weeklyGrid');
+            container.innerHTML = data.map(item => `
+                <div class="weekly-card">
+                    <div class="weekly-art-wrapper">
+                        <img class="weekly-art-img" src="${item.art16x9}" alt="${item.title}">
+                        <div class="weekly-art-overlay"></div>
+                        <div class="weekly-badge">Топ недели</div>
+                        <div class="weekly-content">
+                            <h3 class="weekly-title">${item.title}</h3>
+                            <div class="weekly-subtitle">${item.subtitle}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-		// Обновленный рендер "Аниме недели"
-		function renderWeeklyAnime(data) {
-			const container = document.getElementById('weeklyGrid');
-			container.innerHTML = data.map(item => `
-				<a href="anime_description.html?id=${item.id}" style="text-decoration: none; color: inherit;">
-					<div class="weekly-card">
-						<div class="weekly-art-wrapper">
-							<img class="weekly-art-img" src="${item.art16x9}" alt="${item.title}">
-							<div class="weekly-art-overlay"></div>
-							<div class="weekly-badge">Топ недели</div>
-							<div class="weekly-content">
-								<h3 class="weekly-title">${item.title}</h3>
-								<div class="weekly-subtitle">${item.subtitle}</div>
-							</div>
-						</div>
-					</div>
-				</a>
-			`).join('');
-		}
 
-		// Обновленный рендер основного каталога из базы данных PostgreSQL
+		// Рендер основного каталога из базы данных PostgreSQLлога
 		function renderAnimeCards(data) {
 			const grid = document.getElementById('animeGrid');
 			
@@ -721,7 +740,7 @@
 				const poster = anime.mainurl || anime.originalurl || 'https://via.placeholder.com/300x400/280d20/f78da7?text=No+Image';
 
 				return `
-					<a href="anime_description.html?id=${id}" style="text-decoration: none; color: inherit;" class="anime-card-link">
+					<a href="anime_description.html?id=${id}" class="anime-card-link">
 						<div class="anime-card">
 							<div class="poster-wrapper">
 								<img class="poster-img" src="${poster}" alt="${title}">
@@ -741,7 +760,7 @@
 			}).join('');
 		}
 
-        // Функция загрузки случайных аниме из базы при старте сайта
+        // Функция загрузки случайных аниме из базы данных при старте сайта
         async function loadRandomAnime() {
             try {
                 const response = await fetch('/api/random');
