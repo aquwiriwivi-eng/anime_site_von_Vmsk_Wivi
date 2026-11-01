@@ -18,6 +18,7 @@ async def fetch_anime_from_shikimori(search_title: str):
         japanese
         airedOn { date }
         poster { originalUrl mainUrl }
+        description
       }
   }
   """

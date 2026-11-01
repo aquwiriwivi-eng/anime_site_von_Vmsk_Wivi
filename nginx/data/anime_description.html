@@ -96,7 +96,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const animeId = urlParams.get('id');
 
-        async function loadAnimeDetails() {
+		async function loadAnimeDetails() {
             if (!animeId) {
                 document.getElementById('animeDetails').innerHTML = 'Аниме не найдено.';
                 return;
@@ -109,9 +109,9 @@
 
                 const anime = await response.json();
 
-                const russian = anime.russian || anime.name || "Без названия";
-				const name = anime.name || anime.name || "No designation";
-                const japanese = anime.japanese || "名前はありません";　
+                // Объявляем переменную title для заголовка и alt у картинки
+                const title = anime.russian || anime.name || "Без названия";
+                const japanese = anime.japanese || "名前はありません"; 
                 const date = anime.date || "Н/Д";
                 const poster = anime.mainurl || anime.originalurl || 'https://via.placeholder.com/300x400';
                 const description = anime.description || "Описание для этого аниме пока не добавлено.";

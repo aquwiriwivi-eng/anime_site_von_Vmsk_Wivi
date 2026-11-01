@@ -49,16 +49,14 @@ def get_random_anime():
 # const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
 # есть кусочек /api/search?q=
 # а дальше после $() являеться нашим текстом запроса, например "Атака Титанов"
-async def anime_search(
-    q: str,
-):  # ВАЖНО: async def нужен, так как внутри используется await!
+async def anime_search( q: str, ):  # ВАЖНО: async def нужен, так как внутри используется await!
   search_pattern = f"%{q}%"
 
   # --- ШАГ 1. Сначала ищем аниме в нашей локальной базе PostgreSQL ---
   with get_conn() as conn:
     anime_rows = conn.execute(
-        "SELECT id, shikimori_id, name, russian, japanese, date, originalurl, "
-        "mainurl FROM anime_list "
+        "SELECT id, shikimori_id, name, russian, japanese, date, originalurl, mainurl, description "
+        "FROM anime_list "
         "WHERE name ILIKE %s "
         "OR russian ILIKE %s "
         "OR japanese ILIKE %s",
@@ -77,6 +75,7 @@ async def anime_search(
           "date": str(r[5]) if r[5] else None,
           "originalurl": r[6],
           "mainurl": r[7],
+          "description": r[8]
       }
       for r in anime_rows
   ]
@@ -108,11 +107,12 @@ async def anime_search(
   with get_conn() as conn:
     with conn.cursor() as cur:
       for anime in shikimori_animes:
-        s_id = str(anime.get("id"))
+        shikimori_id = str(anime.get("id"))
         name = anime.get("name")
         russian = anime.get("russian")
         japanese = anime.get("japanese")
         aired_date = anime.get("airedOn", {}).get("date")
+        description = anime.get("description")
 
         # Достаем ссылки на постеры из структуры Шикимори
         poster = anime.get("poster", {})
@@ -120,34 +120,36 @@ async def anime_search(
         main_url = poster.get("mainUrl")
 
         # Если этого аниме ЕЩЕ НЕТ в нашей базе — сохраняем его туда
-        if s_id not in existing_shikimori_ids:
+        if shikimori_id not in existing_shikimori_ids:
           cur.execute(
               """
-                        INSERT INTO anime_list (shikimori_id, name, russian, japanese, date, originalurl, mainurl)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        INSERT INTO anime_list (shikimori_id, name, russian, japanese, date, originalurl, mainurl, description)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                         ON CONFLICT (shikimori_id) DO NOTHING
                         """,
               (
-                  s_id,
+                  shikimori_id,
                   name,
                   russian,
                   japanese,
                   aired_date,
                   original_url,
                   main_url,
+                  description
               ),
           )
 
           # И сразу добавляем в общий список, который полетит пользователю
           combined_results.append({
               "source": "shikimori_api_newly_saved",
-              "shikimori_id": s_id,
+              "shikimori_id": shikimori_id,
               "name": name,
               "russian": russian,
               "japanese": japanese,
               "date": aired_date,
               "originalurl": original_url,
               "mainurl": main_url,
+              "description": description
           })
 
       conn.commit()
@@ -157,22 +159,21 @@ async def anime_search(
 
   # Забириаем из POSTGRES подробные данные про одно аниме по id этого аниме
 #Больше данных добавлю позже.
-@app.get("/api/search_id")
-async def anime_search_by_id(
-    q: int,
-):
-  search_pattern = f"%{q}%"
+@app.get("/api/anime/{anime_id}")
+async def anime_search_by_id(anime_id: int):
   with get_conn() as conn:
     anime_rows = conn.execute(
-        "SELECT id, shikimori_id, name, russian, japanese, date, description, originalurl, mainurl"
-        "mainurl FROM anime_list "
+        "SELECT id, shikimori_id, name, russian, japanese, date, description, originalurl, mainurl "
+        "FROM anime_list "
         "WHERE id = %s "
-        (search_pattern),
-    ).fetchall()
+        (anime_id),
+    ).fetchone()
+    
+    if not row:
+            raise HTTPException(status_code=404, detail="Аниме не найдено в базе данных")
     
     # Превращаем ответ postgres в JSON-совместимый массив как в app.get search
-  return [
-      {
+  return{
           "id": r[0],
           "shikimori_id": r[1],
           "name": r[2],
@@ -182,6 +183,4 @@ async def anime_search_by_id(
           "description": r[6],
           "originalurl": r[7],
           "mainurl": r[8],
-      }
-      for r in anime_rows
-  ]
+    }
