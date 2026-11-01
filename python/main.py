@@ -44,29 +44,19 @@ def get_random_anime():
   ]
 
 
-@app.get("/api/search")
-# Чекай // Обработчик отправки поисковой формы (AJAX/Fetch) там в строке  // Отправляем GET-запрос на бэкенд
-# const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-# есть кусочек /api/search?q=
-# а дальше после $() являеться нашим текстом запроса, например "Атака Титанов"
-async def anime_search( q: str, ):  # ВАЖНО: async def нужен, так как внутри используется await!
+@app.get("/api/search/local")
+def anime_search_local(q: str):
   search_pattern = f"%{q}%"
-
-  # --- ШАГ 1. Сначала ищем аниме в нашей локальной базе PostgreSQL ---
   with get_conn() as conn:
     anime_rows = conn.execute(
         "SELECT id, shikimori_id, name, russian, japanese, date, originalurl, mainurl, description "
         "FROM anime_list "
-        "WHERE name ILIKE %s "
-        "OR russian ILIKE %s "
-        "OR japanese ILIKE %s",
+        "WHERE name ILIKE %s OR russian ILIKE %s OR japanese ILIKE %s",
         (search_pattern, search_pattern, search_pattern),
     ).fetchall()
 
-  # Превращаем ответ postgres в JSON-совместимый массив
-  local_results = [
+  return [
       {
-          "source": "database",
           "id": r[0],
           "shikimori_id": r[1],
           "name": r[2],
@@ -80,30 +70,46 @@ async def anime_search( q: str, ):  # ВАЖНО: async def нужен, так �
       for r in anime_rows
   ]
 
-  # Собираем ID тех аниме, которые УЖЕ есть в базе, чтобы не дублировать их
-  existing_shikimori_ids = {
-      str(item["shikimori_id"])
-      for item in local_results
-      if item["shikimori_id"]
-  }
-  combined_results = (
-      list(local_results)
-  )  # Начинаем формировать итоговый список с локальных данных
 
-  # --- ШАГ 2. Запрашиваем Шикимори API для поиска дополнительных аниме ---
+@app.get("/api/search/sync")
+async def anime_search_sync(q: str):
+  search_pattern = f"%{q}%"
+  
+  # 1. Сначала собираем то, что уже есть в локальной базе
+  with get_conn() as conn:
+    anime_rows = conn.execute(
+        "SELECT id, shikimori_id, name, russian, japanese, date, originalurl, mainurl, description "
+        "FROM anime_list "
+        "WHERE name ILIKE %s OR russian ILIKE %s OR japanese ILIKE %s",
+        (search_pattern, search_pattern, search_pattern),
+    ).fetchall()
+
+  local_results = [
+      {
+          "id": r[0],
+          "shikimori_id": r[1],
+          "name": r[2],
+          "russian": r[3],
+          "japanese": r[4],
+          "date": str(r[5]) if r[5] else None,
+          "originalurl": r[6],
+          "mainurl": r[7],
+          "description": r[8]
+      }
+      for r in anime_rows
+  ]
+  
+  existing_shikimori_ids = {str(item["shikimori_id"]) for item in local_results if item["shikimori_id"]}
+  combined_results = list(local_results)
+
+  # 2. Запрашиваем Шикимори
   try:
-    shikimori_data = await fetch_anime_from_shikimori(
-        q
-    )  # Передаем поисковую строку q
+    shikimori_data = await fetch_anime_from_shikimori(q)
     shikimori_animes = shikimori_data.get("data", {}).get("animes", [])
   except Exception as e:
-    # Если Шикимори упал или нет интернета, сайт не падает, а отдает то, что нашлось локально!
-    return {
-        "results": combined_results,
-        "api_status": f"Shikimori unavailable: {str(e)}",
-    }
+    return {"results": combined_results, "api_status": str(e)}
 
-  # --- ШАГ 3. Проверяем новые аниме, сохраняем их в базу и добавляем в выдачу ---
+  # 3. Сохраняем новые аниме и сразу забираем их реальный Postgres ID через RETURNING id
   with get_conn() as conn:
     with conn.cursor() as cur:
       for anime in shikimori_animes:
@@ -113,35 +119,26 @@ async def anime_search( q: str, ):  # ВАЖНО: async def нужен, так �
         japanese = anime.get("japanese")
         aired_date = anime.get("airedOn", {}).get("date")
         description = anime.get("description")
-
-        # Достаем ссылки на постеры из структуры Шикимори
         poster = anime.get("poster", {})
         original_url = poster.get("originalUrl")
         main_url = poster.get("mainUrl")
 
-        # Если этого аниме ЕЩЕ НЕТ в нашей базе — сохраняем его туда
         if shikimori_id not in existing_shikimori_ids:
           cur.execute(
               """
-                        INSERT INTO anime_list (shikimori_id, name, russian, japanese, date, originalurl, mainurl, description)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                        ON CONFLICT (shikimori_id) DO NOTHING
-                        """,
-              (
-                  shikimori_id,
-                  name,
-                  russian,
-                  japanese,
-                  aired_date,
-                  original_url,
-                  main_url,
-                  description
-              ),
+              INSERT INTO anime_list (shikimori_id, name, russian, japanese, date, originalurl, mainurl, description)
+              VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+              ON CONFLICT (shikimori_id) DO UPDATE SET name = EXCLUDED.name
+              RETURNING id
+              """,
+              (shikimori_id, name, russian, japanese, aired_date, original_url, main_url, description)
           )
+          row = cur.fetchone()
+          conn.commit()
+          row_id = row[0] if row else None
 
-          # И сразу добавляем в общий список, который полетит пользователю
           combined_results.append({
-              "source": "shikimori_api_newly_saved",
+              "id": row_id,  # <--- Теперь здесь реальный ID из Postgres!
               "shikimori_id": shikimori_id,
               "name": name,
               "russian": russian,
@@ -152,10 +149,8 @@ async def anime_search( q: str, ):  # ВАЖНО: async def нужен, так �
               "description": description
           })
 
-      conn.commit()
-
-  # --- ШАГ 4. Возвращаем полный объединенный список пользователю ---
   return combined_results
+
 
   # Забириаем из POSTGRES подробные данные про одно аниме по id этого аниме
 #Больше данных добавлю позже.

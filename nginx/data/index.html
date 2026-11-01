@@ -620,6 +620,24 @@
 			border-color: rgba(236, 72, 153, 0.5);
 			box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 		}
+		
+		/* Статус поиска (плашка под поисковой строкой) */
+		.search-status {
+			font-size: 14px;
+			color: var(--text-muted);
+			margin-top: -20px;
+			margin-bottom: 25px;
+			transition: opacity 0.4s ease, transform 0.4s ease;
+			opacity: 1;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+.search-status.fade-out {
+    opacity: 0;
+    transform: translateY(-6px);
+}
 
     </style>
 </head>
@@ -794,38 +812,68 @@
         renderWeeklyAnime(weeklyAnimeData);
         loadRandomAnime(); // <--- Загружаем случайные аниме из базы вместо заглушек!
 		
-		// Обработчик отправки поисковой формы (AJAX/Fetch)
-        const searchForm = document.querySelector('.search-form');
-        if (searchForm) {
-            searchForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
+		// Обработчик отправки поисковой формы (двухэтапный поиск)
+		const searchForm = document.querySelector('.search-form');
+		if (searchForm) {
+			searchForm.addEventListener('submit', async (e) => {
+				e.preventDefault();
 
-                const query = document.querySelector('.search-input').value.trim();
-                if (!query) return;
+				const query = document.querySelector('.search-input').value.trim();
+				if (!query) return;
 
-                try {
-                    const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-                    if (!response.ok) throw new Error('Ошибка сервера');
+				const sectionTitle = document.querySelector('.anime-grid').previousElementSibling;
+				if (sectionTitle) {
+					sectionTitle.textContent = `Результаты поиска: "${query}"`;
+				}
 
-                    const jsonResponse = await response.json();
-                    const searchResults = jsonResponse.results || jsonResponse; // поддержка обоих форматов
+				// Создаем или находим элемент для плашки статуса
+				let statusEl = document.getElementById('searchStatus');
+				if (!statusEl) {
+					statusEl = document.createElement('div');
+					statusEl.id = 'searchStatus';
+					statusEl.className = 'search-status';
+					document.querySelector('.search-section').after(statusEl);
+				}
+				
+				// Этап 1: Мгновенный показ результатов из локальной базы Postgres
+				statusEl.innerHTML = '<i class="fa-solid fa-database"></i> Поиск в локальной базе...';
+				statusEl.classList.remove('fade-out');
 
-                    const sectionTitle = document.querySelector('.anime-grid').previousElementSibling;
-                    if (sectionTitle) {
-                        sectionTitle.textContent = `Результаты поиска: "${query}"`;
-                    }
+				try {
+					const localResponse = await fetch(`/api/search/local?q=${encodeURIComponent(query)}`);
+					if (!localResponse.ok) throw new Error('Ошибка локального поиска');
+					const localResults = await localResponse.json();
 
-                    if (searchResults && searchResults.length > 0) {
-                        renderAnimeCards(searchResults);
-                    } else {
-                        document.getElementById('animeGrid').innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">Ничего не найдено :(</p>';
-                    }
+					if (localResults && localResults.length > 0) {
+						renderAnimeCards(localResults);
+					} else {
+						document.getElementById('animeGrid').innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">В локальной базе ничего не найдено. Ищем в внешних источниках...</p>';
+					}
 
-                } catch (error) {
-                    console.error('Ошибка поиска:', error);
-                }
-            });
-        }
+					// Этап 2: Меняем статус и обращаемся к Шикимори (в фоновом режиме)
+					statusEl.innerHTML = '<i class="fa-solid fa-globe fa-spin"></i> Поиск из других источников...';
+
+					const syncResponse = await fetch(`/api/search/sync?q=${encodeURIComponent(query)}`);
+					if (!syncResponse.ok) throw new Error('Ошибка синхронизации');
+					const fullResults = await syncResponse.json();
+
+					// Когда данные пришли и записались в базу — обновляем сетку новыми карточками (с реальными ID!)
+					if (fullResults && fullResults.length > 0) {
+						renderAnimeCards(fullResults);
+					}
+
+					// Плавное исчезновение плашки статуса с анимацией
+					statusEl.classList.add('fade-out');
+					setTimeout(() => {
+						statusEl.remove();
+					}, 400);
+
+				} catch (error) {
+					console.error('Ошибка поиска:', error);
+					statusEl.textContent = 'Не удалось загрузить данные из внешних источников :( obat';
+				}
+			});
+		}
 		
 		// Список всех фоновых изображений из папки /backgrounds/ (любые форматы) 
 		// ПИШИ В массив bgImages ТОЧНЫЕ НАЗВАНИЕ ФАЙЛОВ ИЗ ПАПКИ backgrounds
