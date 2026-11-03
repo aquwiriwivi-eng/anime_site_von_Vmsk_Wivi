@@ -61,6 +61,15 @@ services:
       - backend_net
     container_name: "adminer_container"
 
+  prometheus:
+    image: prom/prometheus:latest-busybox
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - 
+
+
 networks:
   frontend_net:
     name: frontend_net
@@ -72,3 +81,4 @@ networks:
 volumes:
   Postgre_data:
     name: db_storage_volume
+
