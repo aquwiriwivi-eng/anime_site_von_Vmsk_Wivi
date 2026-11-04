@@ -95,7 +95,7 @@ docker compose up -d
 | 🌸 Сайт | http://localhost (или IP вашего сервера) |
 | 🗄 Adminer (управление БД) | http://localhost:8051 |
 
-Для входа в Adminer выберите систему **PostgreSQL**, сервер `postgre_sql` и укажите данные из
+Для входа в Adminer выберите систему **PostgreSQL**, сервер `postgre_sql` и укажите данные из файла env.db
 
 С любовью от **Vmsk_Wivi** 🌸
 =======
