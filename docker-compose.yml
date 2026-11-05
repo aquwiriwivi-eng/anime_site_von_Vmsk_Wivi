@@ -61,13 +61,14 @@ services:
       - backend_net
     container_name: "adminer_container"
 
-  prometheus:
-    image: prom/prometheus:latest-busybox
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - 
+  # prometheus:
+  #   image: prom/prometheus:latest-busybox
+  #   container_name: prometheus
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  #     - prometheus_data:/prometheus
 
 
 networks:
