@@ -15,8 +15,8 @@ def get_conn():
   return psycopg.connect(
       host="postgre_sql",
       port=5432,
-      dbname="Anime_Wivi",
-      user="Vmsk_Wivi",
+      dbname=os.environ["POSTGRES_DB"],
+      user=os.environ["POSTGRES_USER"],
       password=os.environ["DB_PASSWORD"],
   )
 
