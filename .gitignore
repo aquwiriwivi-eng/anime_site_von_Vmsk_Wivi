@@ -15,3 +15,5 @@
 !python/shikimori.py
 !python/main.py
 !python/photo/.gitkeep
+!db/
+!db/**

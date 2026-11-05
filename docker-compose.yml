@@ -37,13 +37,9 @@ services:
     shm_size: 128mb
     # or set shared memory limit when deploy via swarm stack
     volumes:
-      - Postgre_data:/var/lib/postgresql
-    #  - type: tmpfs
-    #    target: /dev/shm
-    #    tmpfs:
-    #      size: 134217728 # 128*2^20 bytes = 128Mb
-# Password and username will be rewrite from .env.db
-    env_file:
+      - "Postgre_data:/var/lib/postgresql"
+      - "./db:/docker-entrypoint-initdb.d/"
+    env_file: # Password and username will be rewrite from .env.db
       - path: ./.env.db.example
         required: true
       - path: ./.env.db
@@ -64,8 +60,8 @@ services:
   # prometheus:
   #   image: prom/prometheus:latest-busybox
   #   container_name: prometheus
-  #   ports:
-  #     - "9090:9090"
+  #   expose:
+  #     - 9090
   #   volumes:
   #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
   #     - prometheus_data:/prometheus
