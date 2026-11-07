@@ -15,6 +15,7 @@ services:
     build:
       context: .
       dockerfile: "DockerFiles/Dockerfile_python_backend"
+    restart: unless-stopped
     container_name: "api_backend_container"
     networks:
      - frontend_net
@@ -22,16 +23,14 @@ services:
     volumes:
      - "./python:/code/app"
     env_file:
-      - path: ./.env.api.example
-        required: true
       - path: ./.env.api
-        required: false
-    restart: unless-stopped
+        required: true
 
 # Use postgres/example user/password credentials
 
   postgre_sql:
     image: postgres:18.6-trixie
+    container_name: "postgre_sql_container"
     restart: unless-stopped
     # set shared memory limit when using docker compose
     shm_size: 128mb
@@ -40,31 +39,43 @@ services:
       - "Postgre_data:/var/lib/postgresql"
       - "./db:/docker-entrypoint-initdb.d/"
     env_file: # Password and username will be rewrite from .env.db
-      - path: ./.env.db.example
-        required: true
       - path: ./.env.db
-        required: false
+        required: true
     networks:
       - backend_net
-    container_name: "postgre_sql_container"
 
   adminer_sql:
     image: adminer:6
+    container_name: "adminer_container"
     restart: unless-stopped
     ports:
       - 8051:8080
     networks:
       - backend_net
-    container_name: "adminer_container"
 
-  # prometheus:
-  #   image: prom/prometheus:latest-busybox
-  #   container_name: prometheus
-  #   expose:
-  #     - 9090
-  #   volumes:
-  #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-  #     - prometheus_data:/prometheus
+  prometheus:
+    image: prom/prometheus:latest-busybox
+    container_name: "prometheus"
+    restart: unless-stopped
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - monitor_net
+
+  grafana:
+    image: grafana/grafana:13.2-slim
+    container_name: "grafana"
+    restart: unless-stopped
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - monitor_net
 
 
 networks:
@@ -74,8 +85,16 @@ networks:
   backend_net:
     name: backend_net
     driver: bridge
+  monitor_net:
+    name: monitor_net
+    driver: bridge
 
 volumes:
   Postgre_data:
     name: db_storage_volume
+  prometheus_data:
+    name: prometheus_volume
+  grafana_data:
+    name: grafana_volume
+
 
