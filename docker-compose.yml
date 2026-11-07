@@ -23,7 +23,7 @@ services:
     volumes:
      - "./python:/code/app"
     env_file:
-      - path: ./.env.api
+      - path: ./env/.env.api
         required: true
 
 # Use postgres/example user/password credentials
@@ -39,7 +39,7 @@ services:
       - "Postgre_data:/var/lib/postgresql"
       - "./db:/docker-entrypoint-initdb.d/"
     env_file: # Password and username will be rewrite from .env.db
-      - path: ./.env.db
+      - path: ./env/.env.db
         required: true
     networks:
       - backend_net
