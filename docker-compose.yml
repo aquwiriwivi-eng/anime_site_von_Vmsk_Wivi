@@ -38,7 +38,7 @@ services:
     volumes:
       - "Postgre_data:/var/lib/postgresql"
       - "./db:/docker-entrypoint-initdb.d/"
-    env_file: # Password and username will be rewrite from .env.db
+    env_file
       - path: ./env/.env.db
         required: true
     networks:
@@ -76,6 +76,9 @@ services:
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
     networks:
       - monitor_net
+    env_file:
+      - path: ./env/.env.grafana.example
+        required: true
 
 
 networks:
