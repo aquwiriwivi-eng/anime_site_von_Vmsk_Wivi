@@ -105,7 +105,7 @@ services:
     ports:
       - "3100:3100"
     volumes:
-      - ./loki-config.yaml:/etc/loki/local-config.yaml
+      - ./monitoring/loki-config.yaml:/etc/loki/local-config.yaml
     networks:
       - monitor_net
 
