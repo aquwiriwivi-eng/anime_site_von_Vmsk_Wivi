@@ -16,3 +16,5 @@
 !db/**
 !env_examples/
 !env_examples/**
+!monitoring/
+!monitoring/**
