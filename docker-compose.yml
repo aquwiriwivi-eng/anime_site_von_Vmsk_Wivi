@@ -38,7 +38,7 @@ services:
     volumes:
       - "Postgre_data:/var/lib/postgresql"
       - "./db:/docker-entrypoint-initdb.d/"
-    env_file
+    env_file:
       - path: ./env/.env.db
         required: true
     networks:
