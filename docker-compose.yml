@@ -76,7 +76,7 @@ services:
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
     env_file:
-      - path: ./env/.env.grafana.example
+      - path: ./env/.env.grafana
         required: true
     networks:
       - monitor_net
