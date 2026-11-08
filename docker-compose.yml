@@ -88,18 +88,14 @@ services:
     networks:
       - monitor_net
 
-  promtail:
-    image: grafana/promtail:3.6.11
-    container_name: promtail
+  alloy:
+    image: grafana/alloy:v1.21.3
+    container_name: alloy
     restart: unless-stopped
-    ports:
-      - "9080:9080"
+    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
     volumes:
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./monitoring/promtail-config.yaml:/etc/promtail/config.yml
-    command: -config.file=/etc/promtail/config.yml
-    privileged: true
+      - ./monitoring/alloy-config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - monitor_net
 
