@@ -77,8 +77,9 @@ services:
     restart: unless-stopped
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
-      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./monitoring/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+#      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+#      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
     env_file:
       - path: ./env/.env.grafana
         required: true
