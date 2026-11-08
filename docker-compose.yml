@@ -82,6 +82,8 @@ services:
     env_file:
       - path: ./env/.env.grafana
         required: true
+    ports:
+      - "3000:3000"
     networks:
       - monitor_net
 
