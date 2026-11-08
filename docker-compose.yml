@@ -54,6 +54,8 @@ services:
     networks:
       - backend_net
 
+    # --------MONITORING---------------
+
   prometheus:
     image: prom/prometheus:v3.16.0-busybox
     container_name: "prometheus"
@@ -90,7 +92,7 @@ services:
     volumes:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./promtail-config.yaml:/etc/promtail/config.yml
+      - ./monitoring/promtail-config.yaml:/etc/promtail/config.yml
     command: -config.file=/etc/promtail/config.yml
     privileged: true
     networks:
@@ -106,6 +108,8 @@ services:
       - ./loki-config.yaml:/etc/loki/local-config.yaml
     networks:
       - monitor_net
+
+    # --------NETWORKS AND VOLUMES---------------
 
 networks:
   frontend_net:
