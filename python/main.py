@@ -8,6 +8,11 @@ from pydantic import BaseModel
 # Правильный импорт твоей функции (проверь название файла: shikimori или shikimori_2)
 from shikimori import fetch_anime_from_shikimori
 
+from prometheus_fastapi_instrumentator import Instrumentator #Monitor_net
+Instrumentator().instrument(app).expose(app) #Monitor_net
+
+#--------------------------------------------------
+
 app = FastAPI()
 
 
