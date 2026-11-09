@@ -132,4 +132,4 @@ volumes:
   grafana_data:
     name: grafana_volume
   loki_data:
-    name: loki_data:
+    name: loki_data
