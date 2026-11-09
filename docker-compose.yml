@@ -98,7 +98,7 @@ services:
       - ./monitoring/alloy-config.alloy:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
-      - "12345:12345"   # UI Alloy для отладки
+      - "12345:12345"
     networks:
       - monitor_net
 
