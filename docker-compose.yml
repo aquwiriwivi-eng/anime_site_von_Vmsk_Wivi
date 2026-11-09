@@ -38,7 +38,7 @@ services:
     # or set shared memory limit when deploy via swarm stack
     volumes:
       - "Postgre_data:/var/lib/postgresql"
-      - "./db:/docker-entrypoint-initdb.d/"
+      - "./db:/docker-entrypoint-initdb.d/:ro"
     env_file:
       - path: ./env/.env.db
         required: true
@@ -61,7 +61,7 @@ services:
     container_name: "prometheus"
     restart: unless-stopped
     volumes:
-      - ./prometheus/:/etc/prometheus/
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -77,7 +77,7 @@ services:
     restart: unless-stopped
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ./monitoring/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
 #      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
 #      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
     env_file:
@@ -107,6 +107,7 @@ services:
       - "3100:3100"
     volumes:
       - ./monitoring/loki-config.yaml:/etc/loki/local-config.yaml
+      - loki_data:/loki
     networks:
       - monitor_net
 
@@ -130,3 +131,5 @@ volumes:
     name: prometheus_volume
   grafana_data:
     name: grafana_volume
+  loki_data:
+    name: loki_data:
