@@ -18,3 +18,5 @@
 !env_examples/**
 !monitoring/
 !monitoring/**
+!photo_to_gitlab/
+!photo_to_gitlab/**
