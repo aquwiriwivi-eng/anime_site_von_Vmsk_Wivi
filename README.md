@@ -6,7 +6,7 @@
 
 ---
 
-![alt text](image.png)
+![alt text](photo_to_gitlab/image.png)
 
 ## 🛠 Технологический стек
 
