@@ -10,6 +10,7 @@ services:
     volumes:
       - "./nginx/data:/usr/share/nginx/html"
       - "./nginx/nginx_configuration:/etc/nginx/conf.d/"
+      - "./anime_photo:/usr/share/nginx/html/anime_photo/" #тут лежат постеры аниме которые даст backend
     restart: unless-stopped
 
   api:
@@ -24,7 +25,7 @@ services:
      - monitor_net
     volumes:
      - "./python:/code/app"
-     - "./anime_photo:/code/app/anime_photo"
+     - "./anime_photo:/code/app/anime_photo" #тут лежат постеры аниме
     env_file:
       - path: ./env/.env.api
         required: true
