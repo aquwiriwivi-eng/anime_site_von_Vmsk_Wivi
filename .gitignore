@@ -1,8 +1,5 @@
 *
 
-!.env.db.example
-!.env.api.example
-
 !README.md
 !DockerFiles/
 !DockerFiles/**
@@ -12,8 +9,22 @@
 !nginx/
 !nginx/**
 !python/
+<<<<<<< HEAD
 !python/shikimori.py
 !python/main.py
 !python/photo/.gitkeep
 !db/
 !db/**
+=======
+!python/**
+!db/
+!db/**
+!env_examples/
+!env_examples/**
+!monitoring/
+!monitoring/**
+!photo_to_gitlab/
+!photo_to_gitlab/**
+!dasboards_referens/
+!dasboards_referens/**
+>>>>>>> aezi_branch

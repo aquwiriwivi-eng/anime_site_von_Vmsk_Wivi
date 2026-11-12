@@ -6,7 +6,7 @@ async def fetch_anime_from_shikimori(search_title: str):
 
 # 2. Обязательный заголовок по правилам Shikimori (иначе заблокируют IP)
   headers = {
-      "User-Agent": "Yume-anime"  # Можешь написать имя своего сайта
+      "User-Agent": "Yume-anime"  # Пишем как представляеться наш сервис
   }
 
   shikimori_query = """

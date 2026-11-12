@@ -4,58 +4,125 @@ services:
     container_name: "nginx_anime_container"
     networks:
       - frontend_net
+      - monitor_net
     ports:
      - "80:80"
     volumes:
       - "./nginx/data:/usr/share/nginx/html"
       - "./nginx/nginx_configuration:/etc/nginx/conf.d/"
+      - "./anime_photo:/usr/share/nginx/html/anime_photo/" #тут лежат постеры аниме которые даст backend!
     restart: unless-stopped
 
   api:
     build:
       context: .
       dockerfile: "DockerFiles/Dockerfile_python_backend"
+    restart: unless-stopped
     container_name: "api_backend_container"
     networks:
      - frontend_net
      - backend_net
+     - monitor_net
     volumes:
      - "./python:/code/app"
+     - "./anime_photo:/code/app/anime_photo" #тут лежат постеры аниме
     env_file:
-      - path: ./.env.api.example
+      - path: ./env/.env.api
         required: true
-      - path: ./.env.api
-        required: false
-    restart: unless-stopped
 
 # Use postgres/example user/password credentials
 
   postgre_sql:
     image: postgres:18.6-trixie
+    container_name: "postgre_sql_container"
     restart: unless-stopped
     # set shared memory limit when using docker compose
     shm_size: 128mb
     # or set shared memory limit when deploy via swarm stack
     volumes:
       - "Postgre_data:/var/lib/postgresql"
+<<<<<<< HEAD
       - "./db:/docker-entrypoint-initdb.d/"
     env_file: # Password and username will be rewrite from .env.db
       - path: ./.env.db.example
+=======
+      - "./db:/docker-entrypoint-initdb.d/:ro"
+    env_file:
+      - path: ./env/.env.db
+>>>>>>> aezi_branch
         required: true
-      - path: ./.env.db
-        required: false
     networks:
       - backend_net
-    container_name: "postgre_sql_container"
 
   adminer_sql:
     image: adminer:6
+    container_name: "adminer_container"
     restart: unless-stopped
     ports:
       - 8051:8080
     networks:
       - backend_net
-    container_name: "adminer_container"
+
+    # --------MONITORING---------------
+
+  prometheus:
+    image: prom/prometheus:v3.16.0-busybox
+    container_name: "prometheus"
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    networks:
+      - monitor_net
+
+  grafana:
+    image: grafana/grafana:13.2-slim
+    container_name: "grafana"
+    restart: unless-stopped
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+#      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+#      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+    env_file:
+      - path: ./env/.env.grafana
+        required: true
+    ports:
+      - "3000:3000"
+    networks:
+      - monitor_net
+
+  alloy:
+    image: grafana/alloy:v1.21.3
+    container_name: alloy
+    restart: unless-stopped
+    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+    volumes:
+      - ./monitoring/alloy-config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "12345:12345"
+    networks:
+      - monitor_net
+
+  loki:
+    image: grafana/loki:3.6.20
+    container_name: loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring/loki-config.yaml:/etc/loki/local-config.yaml
+      - loki_data:/loki
+    networks:
+      - monitor_net
+
+    # --------NETWORKS AND VOLUMES---------------
 
   # prometheus:
   #   image: prom/prometheus:latest-busybox
@@ -74,8 +141,20 @@ networks:
   backend_net:
     name: backend_net
     driver: bridge
+  monitor_net:
+    name: monitor_net
+    driver: bridge
 
 volumes:
   Postgre_data:
     name: db_storage_volume
+<<<<<<< HEAD
 
+=======
+  prometheus_data:
+    name: prometheus_volume
+  grafana_data:
+    name: grafana_volume
+  loki_data:
+    name: loki_data
+>>>>>>> aezi_branch

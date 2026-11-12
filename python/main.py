@@ -1,14 +1,26 @@
 import os  # БЕРЕМ ПАРОЛИ ИЗ ОКРУЖЕНИЯ BASH
+import asyncio
 import psycopg  # ЧТОБЫ ОБЩАТЬСЯ С POSTGRES
 import httpx  # Чтобы общаться с Shikimori_api
 
 from fastapi import FastAPI, HTTPException  # Чтобы писать api
+from fastapi.staticfiles import StaticFiles  # Чтобы отдавать картинки фронтенду
 from pydantic import BaseModel
 
 # Правильный импорт твоей функции (проверь название файла: shikimori или shikimori_2)
 from shikimori import fetch_anime_from_shikimori
+from images import download_anime_images, PHOTO_DIR
+
+#--------------------------------------------------
 
 app = FastAPI()
+
+# Картинки будут доступны по адресу /anime_photo/mainurl_folder/<файл>
+# Это совпадает с относительным путём, который лежит в БД
+app.mount("/anime_photo", StaticFiles(directory=PHOTO_DIR), name="anime_photo")
+
+from prometheus_fastapi_instrumentator import Instrumentator #Added Prometheus to collect metrics
+Instrumentator().instrument(app).expose(app) #Added Prometheus to collect metrics
 
 
 def get_conn():
@@ -109,45 +121,57 @@ async def anime_search_sync(q: str):
   except Exception as e:
     return {"results": combined_results, "api_status": str(e)}
 
-  # 3. Сохраняем новые аниме и сразу забираем их реальный Postgres ID через RETURNING id
+  # 3. Берем только те аниме, которых ещё нет в нашей базе
+  new_animes = [a for a in shikimori_animes if str(a.get("id")) not in existing_shikimori_ids]
+
+  # 4. Скачиваем картинки ДО работы с БД (все аниме параллельно).
+  #    Для каждого аниме получаем (путь_original, путь_main)
+  posters = [a.get("poster") or {} for a in new_animes]
+  photo_paths = await asyncio.gather(*(
+      download_anime_images(str(a.get("id")), p.get("originalUrl"), p.get("mainUrl"))
+      for a, p in zip(new_animes, posters)
+  ))
+
+  # 5. Сохраняем новые аниме: в БД идёт ПУТЬ к файлу, а не ссылка Shikimori
   with get_conn() as conn:
     with conn.cursor() as cur:
-      for anime in shikimori_animes:
+      for anime, poster, (original_path, main_path) in zip(new_animes, posters, photo_paths):
         shikimori_id = str(anime.get("id"))
         name = anime.get("name")
         russian = anime.get("russian")
         japanese = anime.get("japanese")
-        aired_date = anime.get("airedOn", {}).get("date")
+        aired_date = (anime.get("airedOn") or {}).get("date")
         description = anime.get("description")
-        poster = anime.get("poster", {})
-        original_url = poster.get("originalUrl")
-        main_url = poster.get("mainUrl")
 
-        if shikimori_id not in existing_shikimori_ids:
-          cur.execute(
-              """
-              INSERT INTO anime_list (shikimori_id, name, russian, japanese, date, originalurl, mainurl, description)
-              VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-              ON CONFLICT (shikimori_id) DO UPDATE SET name = EXCLUDED.name
-              RETURNING id
-              """,
-              (shikimori_id, name, russian, japanese, aired_date, original_url, main_url, description)
-          )
-          row = cur.fetchone()
-          conn.commit()
-          row_id = row[0] if row else None
+        # Если скачать не удалось (path = None) - временно оставляем ссылку Shikimori,
+        # чтобы фронтенд не остался совсем без картинки
+        original_url = original_path or poster.get("originalUrl")
+        main_url = main_path or poster.get("mainUrl")
 
-          combined_results.append({
-              "id": row_id,  # <--- Теперь здесь реальный ID из Postgres!
-              "shikimori_id": shikimori_id,
-              "name": name,
-              "russian": russian,
-              "japanese": japanese,
-              "date": aired_date,
-              "originalurl": original_url,
-              "mainurl": main_url,
-              "description": description
-          })
+        cur.execute(
+            """
+            INSERT INTO anime_list (shikimori_id, name, russian, japanese, date, originalurl, mainurl, description)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (shikimori_id) DO UPDATE SET name = EXCLUDED.name
+            RETURNING id
+            """,
+            (shikimori_id, name, russian, japanese, aired_date, original_url, main_url, description)
+        )
+        row = cur.fetchone()
+        conn.commit()
+        row_id = row[0] if row else None
+
+        combined_results.append({
+            "id": row_id,  # Реальный ID из Postgres
+            "shikimori_id": shikimori_id,
+            "name": name,
+            "russian": russian,
+            "japanese": japanese,
+            "date": aired_date,
+            "originalurl": original_url,  # теперь это путь вида anime_photo/originalurl_folder/...
+            "mainurl": main_url,          # а это anime_photo/mainurl_folder/...
+            "description": description
+        })
 
   return combined_results
 
