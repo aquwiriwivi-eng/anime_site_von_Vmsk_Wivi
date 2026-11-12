@@ -9,9 +9,7 @@
 !nginx/
 !nginx/**
 !python/
-!python/shikimori.py
-!python/main.py
-!python/photo/.gitkeep
+!python/**
 !db/
 !db/**
 !env_examples/

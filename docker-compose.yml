@@ -24,6 +24,7 @@ services:
      - monitor_net
     volumes:
      - "./python:/code/app"
+     - "./anime_photo:/code/app/anime_photo"
     env_file:
       - path: ./env/.env.api
         required: true
