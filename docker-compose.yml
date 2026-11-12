@@ -10,7 +10,7 @@ services:
     volumes:
       - "./nginx/data:/usr/share/nginx/html"
       - "./nginx/nginx_configuration:/etc/nginx/conf.d/"
-      - "./anime_photo:/usr/share/nginx/html/anime_photo/" #тут лежат постеры аниме которые даст backend
+      - "./anime_photo:/usr/share/nginx/html/anime_photo/" #тут лежат постеры аниме которые даст backend!
     restart: unless-stopped
 
   api:
