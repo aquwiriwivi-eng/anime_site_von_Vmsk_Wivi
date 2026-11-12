@@ -41,15 +41,9 @@ services:
     # or set shared memory limit when deploy via swarm stack
     volumes:
       - "Postgre_data:/var/lib/postgresql"
-<<<<<<< HEAD
-      - "./db:/docker-entrypoint-initdb.d/"
-    env_file: # Password and username will be rewrite from .env.db
-      - path: ./.env.db.example
-=======
       - "./db:/docker-entrypoint-initdb.d/:ro"
     env_file:
       - path: ./env/.env.db
->>>>>>> aezi_branch
         required: true
     networks:
       - backend_net
@@ -148,13 +142,9 @@ networks:
 volumes:
   Postgre_data:
     name: db_storage_volume
-<<<<<<< HEAD
-
-=======
   prometheus_data:
     name: prometheus_volume
   grafana_data:
     name: grafana_volume
   loki_data:
     name: loki_data
->>>>>>> aezi_branch
