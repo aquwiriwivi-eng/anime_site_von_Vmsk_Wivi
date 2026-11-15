@@ -723,27 +723,53 @@
 
 	<!-- Скрипт рендеринга данных -->
     <script>
-        // 1. Данные для "Аниме недели" (Формат 16:9 остается статичным или его тоже можно потом перенести)
-        const weeklyAnimeData = [
-            {
-                id: 101,
-                title: "Атака титанов: Финал",
-                subtitle: "Главный тренд недели",
-                art16x9: "https://images.hdqwalls.com/wallpapers/attack-on-titan-season-4-2021-4k-bc.jpg"
-            },
-            {
-                id: 102,
-                title: "Магическая битва 2",
-                subtitle: "Выбор пользователей",
-                art16x9: "https://images.hdqwalls.com/wallpapers/jujutsu-kaisen-season-2-4k-io.jpg"
-            },
-            {
-                id: 103,
-                title: "Клинок, рассекающий демонов",
-                subtitle: "Самый высокий рейтинг",
-                art16x9: "https://images.hdqwalls.com/wallpapers/demon-slayer-kimetsu-no-yaiba-4k-2020-e2.jpg"
+
+        // Загрузка "Аниме недели" из новой базы данных через бэкенд
+        async function loadWeeklyAnime() {
+            try {
+                const response = await fetch('/api/anime-of-the-week');
+                if (!response.ok) throw new Error('Ошибка загрузки аниме недели');
+                
+                const data = await response.json();
+                const container = document.getElementById('weeklyGrid');
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">На эту неделю аниме пока не назначено.</p>';
+                    return;
+                }
+
+                container.innerHTML = data.map(item => {
+                    // Используем поля, которые возвращает твой новый бэкенд (main.py)
+                    const title = item.russian || item.name || "Аниме недели";
+                    const tagline = item.tagline || "";
+                    // Исправляем путь к картинке: бэкенд возвращает 'anime_photo/week/filename.webp', 
+                    // а FastAPI монтирует StaticFiles по пути '/anime_photo'
+                    const bannerUrl = item.banner_path ? `/${item.banner_path}` : 'https://via.placeholder.com/1280x720/280d20/f78da7?text=Yume+Anime';
+                    const detailId = item.anime_id;
+
+                    return `
+                        <a href="anime_description.html?id=${detailId}" class="weekly-card">
+                            <div class="weekly-art-wrapper">
+                                <img class="weekly-art-img" src="${bannerUrl}" alt="${title}">
+                                <div class="weekly-art-overlay"></div>
+                                <div class="weekly-badge">Слот ${item.position}</div>
+                                <div class="weekly-content">
+                                    <h3 class="weekly-title">${title}</h3>
+                                    <div class="weekly-subtitle">${tagline}</div>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Не удалось загрузить аниме недели:', error);
+                document.getElementById('weeklyGrid').innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">Ошибка загрузки аниме недели :(</p>';
             }
-        ];
+        }
+
+        // Инициализация при загрузке страницы (заменяем старый вызов renderWeeklyAnime)
+        loadWeeklyAnime();
+        loadRandomAnime();
 		
         // Рендер "Аниме недели"
 		function renderWeeklyAnime(data) {
