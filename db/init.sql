@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS anime_of_the_week (
     position     SMALLINT NOT NULL CHECK (position BETWEEN 1 AND 3),
     banner_path  TEXT NOT NULL,
     tagline      VARCHAR(40) NOT NULL
-                 CHECK (char_length(tagline) BETWEEN 15 AND 20),
+                 CHECK (char_length(tagline) BETWEEN 5 AND 30),
     is_published BOOLEAN NOT NULL DEFAULT TRUE,
     created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
