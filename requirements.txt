@@ -3,3 +3,4 @@ psycopg
 httpx
 pydantic
 prometheus_fastapi_instrumentator
+pillow
