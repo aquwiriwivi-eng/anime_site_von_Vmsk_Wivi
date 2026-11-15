@@ -20,4 +20,5 @@
 !photo_to_gitlab/**
 !dasboards_referens/
 !dasboards_referens/**
-!"Yume-Anime - техническая_документация_по_актуальной_реализации.docx"
+!Documentation
+!Documentation/**
