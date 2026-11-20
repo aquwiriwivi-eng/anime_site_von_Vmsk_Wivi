@@ -19,6 +19,8 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Header, Quer
 from PIL import Image
 from psycopg.errors import UniqueViolation
 
+from itsdangerous import URLSafeTimedSerializer, BadSignature # For Security 
+
 #--------------------------------------------------
 
 app = FastAPI()
