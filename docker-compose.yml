@@ -53,7 +53,7 @@ services:
     container_name: "adminer_container"
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8051:8080"
+      - "127.0.0.1:8080:8080"
     networks:
       - backend_net
 

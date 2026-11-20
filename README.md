@@ -182,7 +182,7 @@ docker compose up -d --build
 | Сервис | Контейнер | Проброс портов | Доступ | Назначение |
 | :--- | :--- | :--- | :--- | :--- |
 | **Nginx** | `nginx_anime_container`[cite: 9] | `80:80`[cite: 9] | Напрямую (`http://<IP_сервера>`) | Фронтенд, постеры и проксирование `/api/` |
-| **Adminer** | `adminer_container`[cite: 9] | `127.0.0.1:8051:8080`[cite: 9] | Через SSH-туннель (`localhost:8051`)[cite: 9] | Веб-интерфейс управления PostgreSQL[cite: 7] |
+| **Adminer** | `adminer_container`[cite: 9] | `127.0.0.1:8080:8080`[cite: 9] | Через SSH-туннель (`localhost:8051`)[cite: 9] | Веб-интерфейс управления PostgreSQL[cite: 7] |
 | **Grafana** | `grafana`[cite: 9] | `127.0.0.1:3000:3000`[cite: 9] | Через SSH-туннель (`localhost:3000`)[cite: 9] | Дашборды метрик и логов[cite: 7] |
 | **Prometheus** | `prometheus`[cite: 9] | `127.0.0.1:9090:9090`[cite: 9] | Через SSH-туннель (`localhost:9090`)[cite: 9] | Сбор и просмотр метрик[cite: 7] |
 | **Grafana Alloy** | `alloy`[cite: 9] | `127.0.0.1:12345:12345`[cite: 9] | Через SSH-туннель (`localhost:12345`)[cite: 9] | Статус и отладка сборщика логов |
