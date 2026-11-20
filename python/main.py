@@ -42,8 +42,14 @@ def get_conn():
       password=os.environ["DB_PASSWORD"],
   )
 
-# Если токен не задан, админ-эндпоинт просто выключен, а сайт всё равно стартует
-ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN")
+
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
+ADMIN_SECRET_KEY = os.environ.get("ADMIN_SECRET_KEY")
+SESSION_TTL = 2 * 60 * 60
+COOKIE_NAME = "admin_session"
+signer = (URLSafeTimedSerializer(ADMIN_SECRET_KEY, salt="admin-session")
+          if ADMIN_SECRET_KEY else None)
+
 BANNER_DIR = Path(PHOTO_DIR) / "week"
 BANNER_DB_PREFIX = "anime_photo/week"   # так же, как в БД лежат mainurl/originalurl
 MAX_BANNER_BYTES = 10 * 1024 * 1024
@@ -56,6 +62,35 @@ FROM anime_of_the_week w
 JOIN anime_list a ON a.id = w.anime_id
 """
 
+def require_admin(request: Request):
+  if not signer or not ADMIN_PASSWORD:
+    raise HTTPException(503, "Админка не настроена")
+  try:
+    ok = signer.loads(request.cookies.get(COOKIE_NAME, ""), max_age=SESSION_TTL) == "admin"
+  except BadSignature:  # включая истёкшую подпись
+    ok = False
+  if not ok:
+    raise HTTPException(401, "Unauthorized")
+  # CSRF: с чужого сайта кастомный заголовок без CORS не отправить
+  if request.method not in ("GET", "HEAD") and request.headers.get("x-requested-with") != "admin-ui":
+    raise HTTPException(403, "Forbidden")
+
+
+@app.post("/api/admin/login")
+def admin_login(response: Response, password: str = Form(...)):
+  if not ADMIN_PASSWORD or not signer:
+    raise HTTPException(503, "Админка не настроена")
+  if not secrets.compare_digest(password.encode(), ADMIN_PASSWORD.encode()):
+    raise HTTPException(401, "Неверный пароль")
+  response.set_cookie(COOKIE_NAME, signer.dumps("admin"), max_age=SESSION_TTL,
+                      httponly=True, secure=True, samesite="strict", path="/api/admin")
+  return {"ok": True}
+
+
+@app.post("/api/admin/logout")
+def admin_logout(response: Response):
+  response.delete_cookie(COOKIE_NAME, path="/api/admin")
+  return {"ok": True}
 
 def week_row_to_dict(r):
   return {
@@ -69,14 +104,6 @@ def week_row_to_dict(r):
       "tagline": r[7],
       "week_start": str(r[8]),
   }
-
-
-def check_admin(token: str | None):
-  if not ADMIN_TOKEN:
-    raise HTTPException(status_code=503, detail="ADMIN_TOKEN не настроен")
-  if not token or not secrets.compare_digest(token, ADMIN_TOKEN):
-    raise HTTPException(status_code=401, detail="Unauthorized")
-
 
 @app.get("/api/random")
 def get_random_anime():
@@ -251,21 +278,46 @@ async def anime_search_by_id(anime_id: int):
 
 # ---------- Аниме недели ----------
 
-@app.get("/api/anime-of-the-week")
-def get_anime_of_the_week():
-  """Слоты (до 3) последней начавшейся недели."""
+ADMIN_SELECT = """
+SELECT w.id, w.week_start, w.position, w.is_published, w.tagline, w.banner_path,
+       a.shikimori_id, a.russian, a.name
+FROM anime_of_the_week w JOIN anime_list a ON a.id = w.anime_id
+"""
+
+@app.get("/api/admin/anime-of-the-week")
+def admin_list_week(limit: int = Query(30, ge=1, le=100), _: None = Depends(require_admin)):
+  """Все слоты, включая скрытые и будущие недели."""
   with get_conn() as conn:
     rows = conn.execute(
-        WEEK_SELECT + """
-        WHERE w.is_published
-          AND w.week_start = (
-              SELECT MAX(week_start) FROM anime_of_the_week
-              WHERE is_published AND week_start <= CURRENT_DATE
-          )
-        ORDER BY w.position
-        """
+        ADMIN_SELECT + " ORDER BY w.week_start DESC, w.position LIMIT %s", (limit,)
     ).fetchall()
-  return [week_row_to_dict(r) for r in rows]
+  return [{"id": r[0], "week_start": str(r[1]), "position": r[2], "is_published": r[3],
+           "tagline": r[4], "banner_path": r[5], "shikimori_id": r[6],
+           "title": r[7] or r[8]} for r in rows]
+
+
+@app.patch("/api/admin/anime-of-the-week/{item_id}")
+def admin_toggle_week(item_id: int, is_published: bool = Form(...), _: None = Depends(require_admin)):
+  with get_conn() as conn:
+    row = conn.execute(
+        "UPDATE anime_of_the_week SET is_published = %s WHERE id = %s RETURNING id",
+        (is_published, item_id),
+    ).fetchone()
+  if not row:
+    raise HTTPException(404, "Слот не найден")
+  return {"id": item_id, "is_published": is_published}
+
+
+@app.delete("/api/admin/anime-of-the-week/{item_id}")
+def admin_delete_week(item_id: int, _: None = Depends(require_admin)):
+  with get_conn() as conn:
+    row = conn.execute(
+        "DELETE FROM anime_of_the_week WHERE id = %s RETURNING banner_path", (item_id,)
+    ).fetchone()
+  if not row:
+    raise HTTPException(404, "Слот не найден")
+  (BANNER_DIR / Path(row[0]).name).unlink(missing_ok=True)  # только имя файла, никаких путей
+  return {"deleted": item_id}
 
 
 @app.get("/api/anime-of-the-week/archive")
