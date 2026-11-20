@@ -15,7 +15,7 @@ from datetime import date
 from io import BytesIO
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Header, Query
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Header, Query, Depends, Request, Response
 from PIL import Image
 from psycopg.errors import UniqueViolation
 
