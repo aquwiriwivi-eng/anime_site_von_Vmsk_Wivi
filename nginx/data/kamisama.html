@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yume-Anime — Админ-панель</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #090b10;
+      color: #f1f5f9;
+    }
+    .glass-card {
+      background: rgba(17, 21, 32, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+    }
+    .dropzone-active {
+      border-color: #818cf8 !important;
+      background: rgba(99, 102, 241, 0.08) !important;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #090b10; }
+    ::-webkit-scrollbar-thumb { background: #262c3d; border-radius: 9999px; }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-indigo-500/30 selection:text-indigo-200">
+  <!-- Top Bar -->
+  <header class="sticky top-0 z-30 border-b border-white/10 bg-[#090b10]/90 backdrop-blur-md">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-rose-500 shadow-lg shadow-indigo-500/20">
+          <i data-lucide="sparkles" class="h-5 w-5 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base font-bold tracking-tight text-white sm:text-lg">Yume-Anime Admin</h1>
+            <span id="modeBadge" class="rounded-full bg-indigo-500/15 px-2.5 py-0.5 text-xs font-medium text-indigo-300 ring-1 ring-inset ring-indigo-500/30">
+              Live API
+            </span>
+          </div>
+          <p class="text-xs text-slate-400">Управление разделом «Аниме недели»</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2.5">
+        <button id="toggleDemoBtn" type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-slate-300 transition hover:bg-white/10">
+          <i data-lucide="flask-conical" class="h-3.5 w-3.5"></i>
+          <span id="toggleDemoText">Демо-режим</span>
+        </button>
+
+        <div class="flex items-center gap-1.5 rounded-lg border border-white/10 bg-[#111520] p-1">
+          <i data-lucide="key-round" class="ml-2 h-4 w-4 text-slate-400"></i>
+          <input id="adminTokenInput" type="password" placeholder="X-Admin-Token" autocomplete="off"
+            class="w-36 bg-transparent px-2 py-1 text-xs text-white placeholder-slate-500 focus:outline-none sm:w-48" />
+          <button id="toggleTokenVisBtn" type="button" title="Показать/скрыть токен"
+            class="rounded-md p-1.5 text-slate-400 transition hover:bg-white/10 hover:text-white">
+            <i data-lucide="eye" class="h-3.5 w-3.5"></i>
+          </button>
+          <button id="connectBtn" type="button"
+            class="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-500">
+            Войти
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+    <!-- Stats Row -->
+    <section class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div class="glass-card rounded-2xl p-4">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-400">Активно на текущей неделе</span>
+          <span class="rounded-lg bg-emerald-500/15 p-1.5 text-emerald-400">
+            <i data-lucide="flame" class="h-4 w-4"></i>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="statActiveCount" class="text-2xl font-bold text-white">0</span>
+          <span class="text-xs text-slate-400">из 3 слотов</span>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-400">Всего записей в базе</span>
+          <span class="rounded-lg bg-indigo-500/15 p-1.5 text-indigo-400">
+            <i data-lucide="layers" class="h-4 w-4"></i>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="statTotalCount" class="text-2xl font-bold text-white">0</span>
+          <span id="statHiddenCount" class="text-xs text-slate-400">0 скрыто</span>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-400">Текущий понедельник</span>
+          <span class="rounded-lg bg-rose-500/15 p-1.5 text-rose-400">
+            <i data-lucide="calendar" class="h-4 w-4"></i>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="statCurrentMonday" class="text-2xl font-bold text-white">—</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <!-- Left: Add / Update Form -->
+      <section class="lg:col-span-5">
+        <div class="glass-card rounded-2xl p-5 sm:p-6">
+          <div class="mb-5 flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-semibold text-white">Добавить / обновить слот</h2>
+              <p class="text-xs text-slate-400">Назначить тайтл в подборку недели</p>
+            </div>
+            <span class="rounded-lg bg-indigo-500/10 px-2.5 py-1 text-xs font-medium text-indigo-300">POST</span>
+          </div>
+
+          <form id="addSlotForm" class="space-y-4" novalidate>
+            <!-- Anime Search -->
+            <div class="relative">
+              <label for="animeSearchInput" class="mb-1.5 block text-xs font-medium text-slate-300">
+                Поиск аниме в каталоге
+              </label>
+              <div class="relative">
+                <i data-lucide="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"></i>
+                <input id="animeSearchInput" type="text" placeholder="Название на русском или японском..."
+                  class="w-full rounded-xl border border-white/10 bg-[#0b0e17] py-2.5 pl-9 pr-3 text-sm text-white placeholder-slate-500 transition focus:border-indigo-500 focus:outline-none" />
+              </div>
+              <div id="searchResultsDropdown" class="absolute left-0 right-0 z-20 mt-1.5 hidden max-h-60 overflow-y-auto rounded-xl border border-white/10 bg-[#141927] p-1.5 shadow-2xl"></div>
+            </div>
+
+            <!-- Shikimori ID + Week Start -->
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label for="shikimoriIdInput" class="mb-1.5 block text-xs font-medium text-slate-300">
+                  Shikimori ID <span class="text-rose-400">*</span>
+                </label>
+                <input id="shikimoriIdInput" type="text" required placeholder="Например: 52991"
+                  class="w-full rounded-xl border border-white/10 bg-[#0b0e17] px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
+                <p id="selectedAnimeLabel" class="mt-1 truncate text-xs text-indigo-300"></p>
+              </div>
+
+              <div>
+                <label for="weekStartInput" class="mb-1.5 block text-xs font-medium text-slate-300">
+                  Начало недели (Пн) <span class="text-rose-400">*</span>
+                </label>
+                <input id="weekStartInput" type="date" required
+                  class="w-full rounded-xl border border-white/10 bg-[#0b0e17] px-3 py-2.5 text-sm text-white focus:border-indigo-500 focus:outline-none [color-scheme:dark]" />
+                <p id="weekWarning" class="mt-1 text-xs text-amber-400 hidden">Авто-выровнено на понедельник</p>
+              </div>
+            </div>
+
+            <!-- Position -->
+            <div>
+              <span class="mb-1.5 block text-xs font-medium text-slate-300">Позиция в подборке</span>
+              <div class="grid grid-cols-3 gap-2">
+                <button type="button" data-pos="1" class="pos-btn rounded-xl border border-indigo-500 bg-indigo-500/20 py-2 text-xs font-semibold text-white transition">
+                  Топ #1
+                </button>
+                <button type="button" data-pos="2" class="pos-btn rounded-xl border border-white/10 bg-[#0b0e17] py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/5">
+                  Топ #2
+                </button>
+                <button type="button" data-pos="3" class="pos-btn rounded-xl border border-white/10 bg-[#0b0e17] py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/5">
+                  Топ #3
+                </button>
+              </div>
+              <input id="positionInput" type="hidden" value="1" />
+            </div>
+
+            <!-- Tagline -->
+            <div>
+              <div class="mb-1.5 flex items-center justify-between">
+                <label for="taglineInput" class="text-xs font-medium text-slate-300">
+                  Слоган (tagline) <span class="text-rose-400">*</span>
+                </label>
+                <span id="taglineCounter" class="text-xs text-slate-400">0 / 30</span>
+              </div>
+              <input id="taglineInput" type="text" maxlength="30" required placeholder="Например: Главный хит сезона"
+                class="w-full rounded-xl border border-white/10 bg-[#0b0e17] px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
+              <p class="mt-1 text-[11px] text-slate-500">В БД: 5–30 символов (в текущем API: 15–20).</p>
+            </div>
+
+            <!-- Banner Upload -->
+            <div>
+              <span class="mb-1.5 block text-xs font-medium text-slate-300">
+                Баннер 16:9 (мин. 1280px, до 10 МБ) <span class="text-rose-400">*</span>
+              </span>
+              <div id="bannerDropzone" class="group relative cursor-pointer overflow-hidden rounded-xl border border-dashed border-white/20 bg-[#0b0e17] transition hover:border-indigo-400/60">
+                <input id="bannerFileInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" />
+                <div id="bannerPlaceholder" class="flex flex-col items-center justify-center px-4 py-7 text-center">
+                  <div class="mb-2 rounded-full bg-white/5 p-2.5 text-slate-400 group-hover:text-indigo-300">
+                    <i data-lucide="image-plus" class="h-5 w-5"></i>
+                  </div>
+                  <p class="text-xs font-medium text-slate-300">Нажмите или перетащите картинку</p>
+                  <p class="mt-0.5 text-[11px] text-slate-500">JPG, PNG или WebP • 16:9 • 1920×1080</p>
+                </div>
+                <div id="bannerPreviewWrap" class="relative hidden aspect-video w-full">
+                  <img id="bannerPreviewImg" src="" alt="Предпросмотр баннера" class="h-full w-full object-cover" />
+                  <div class="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/80 to-transparent px-3 py-2">
+                    <span id="bannerMetaText" class="text-[11px] font-medium text-slate-200"></span>
+                    <button id="clearBannerBtn" type="button" class="rounded-md bg-white/15 px-2 py-0.5 text-[11px] text-white hover:bg-rose-500">
+                      Сбросить
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button id="submitSlotBtn" type="submit"
+              class="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50">
+              <i data-lucide="upload-cloud" class="h-4 w-4"></i>
+              <span>Сохранить аниме недели</span>
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Right: Existing Slots List -->
+      <section class="lg:col-span-7">
+        <div class="glass-card rounded-2xl p-5 sm:p-6">
+          <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="text-base font-semibold text-white">Запланированные и активные слоты</h2>
+              <p class="text-xs text-slate-400">Скрывайте или удаляйте записи в один клик</p>
+            </div>
+
+            <div class="flex items-center gap-1.5 rounded-xl border border-white/10 bg-[#0b0e17] p-1">
+              <button type="button" data-filter="all" class="filter-btn rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium text-white">Все</button>
+              <button type="button" data-filter="published" class="filter-btn rounded-lg px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white">Опубликованные</button>
+              <button type="button" data-filter="hidden" class="filter-btn rounded-lg px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white">Скрытые</button>
+            </div>
+          </div>
+
+          <div id="slotsList" class="space-y-3"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+    <div class="w-full max-w-md rounded-2xl border border-white/10 bg-[#131722] p-6 shadow-2xl">
+      <div class="flex items-start gap-3">
+        <div class="rounded-xl bg-rose-500/15 p-2.5 text-rose-400">
+          <i data-lucide="trash-2" class="h-5 w-5"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-white">Удалить слот?</h3>
+          <p id="deleteModalDesc" class="mt-1 text-xs leading-relaxed text-slate-400">
+            Запись будет удалена из базы данных, а файл баннера — стёрт с диска.
+          </p>
+        </div>
+      </div>
+      <div class="mt-6 flex justify-end gap-2.5">
+        <button id="cancelDeleteBtn" type="button" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium text-slate-300 hover:bg-white/10">
+          Отмена
+        </button>
+        <button id="confirmDeleteBtn" type="button" class="rounded-xl bg-rose-600 px-4 py-2 text-xs font-semibold text-white hover:bg-rose-500">
+          Удалить навсегда
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
+
+  <script>
+    const state = {
+      token: '',
+      demoMode: false,
+      filter: 'all',
+      slots: [],
+      pendingDeleteId: null,
+      selectedFile: null,
+      searchTimer: null
+    };
+
+    const DEMO_CATALOG = [
+      { id: 1, shikimori_id: '52991', russian: 'Провожающая в последний путь Фрирен', name: 'Sousou no Frieren' },
+      { id: 2, shikimori_id: '51009', russian: 'Магическая битва 2', name: 'Jujutsu Kaisen 2nd Season' },
+      { id: 3, shikimori_id: '52299', russian: 'Поднятие уровня в одиночку', name: 'Ore dake Level Up na Ken' },
+      { id: 4, shikimori_id: '54492', russian: 'Монолог фармацевта', name: 'Kusuriya no Hitorigoto' }
+    ];
+
+    const DEMO_SLOTS = [
+      {
+        id: 101,
+        shikimori_id: '52991',
+        russian: 'Провожающая в последний путь Фрирен',
+        name: 'Sousou no Frieren',
+        week_start: getMondayISO(new Date()),
+        position: 1,
+        tagline: 'Лучшее фэнтези года',
+        banner_path: '',
+        is_published: true
+      },
+      {
+        id: 102,
+        shikimori_id: '54492',
+        russian: 'Монолог фармацевта',
+        name: 'Kusuriya no Hitorigoto',
+        week_start: getMondayISO(new Date()),
+        position: 2,
+        tagline: 'Детектив и дворцовые интриги',
+        banner_path: '',
+        is_published: true
+      },
+      {
+        id: 103,
+        shikimori_id: '52299',
+        russian: 'Поднятие уровня в одиночку',
+        name: 'Ore dake Level Up na Ken',
+        week_start: getMondayISO(new Date()),
+        position: 3,
+        tagline: 'Динамичный экшен недели',
+        banner_path: '',
+        is_published: false
+      }
+    ];
+
+    function getMondayISO(date) {
+      const d = new Date(date);
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      d.setDate(diff);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function showToast(message, type = 'info') {
+      const colors = {
+        success: 'border-emerald-500/30 bg-emerald-950/90 text-emerald-200',
+        error: 'border-rose-500/30 bg-rose-950/90 text-rose-200',
+        info: 'border-indigo-500/30 bg-slate-900/95 text-slate-200'
+      };
+      const el = document.createElement('div');
+      el.className = `rounded-xl border px-4 py-3 text-xs font-medium shadow-xl backdrop-blur transition-all ${colors[type] || colors.info}`;
+      el.textContent = message;
+      document.getElementById('toastContainer').appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 250);
+      }, 3200);
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '').replace(/[&<>"']/g, (m) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[m]));
+    }
+
+    function updateModeUI() {
+      const badge = document.getElementById('modeBadge');
+      const btnText = document.getElementById('toggleDemoText');
+      if (state.demoMode) {
+        badge.textContent = 'Демо-режим';
+        badge.className = 'rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-medium text-amber-300 ring-1 ring-inset ring-amber-500/30';
+        btnText.textContent = 'Live API';
+      } else {
+        badge.textContent = 'Live API';
+        badge.className = 'rounded-full bg-indigo-500/15 px-2.5 py-0.5 text-xs font-medium text-indigo-300 ring-1 ring-inset ring-indigo-500/30';
+        btnText.textContent = 'Демо-режим';
+      }
+    }
+
+    function renderStats() {
+      const currentMonday = getMondayISO(new Date());
+      document.getElementById('statCurrentMonday').textContent = currentMonday;
+      const activeThisWeek = state.slots.filter((s) => s.week_start === currentMonday && s.is_published).length;
+      const hiddenCount = state.slots.filter((s) => !s.is_published).length;
+      document.getElementById('statActiveCount').textContent = activeThisWeek;
+      document.getElementById('statTotalCount').textContent = state.slots.length;
+      document.getElementById('statHiddenCount').textContent = `${hiddenCount} скрыто`;
+    }
+
+    function renderSlots() {
+      renderStats();
+      const container = document.getElementById('slotsList');
+      const filtered = state.slots.filter((s) => {
+        if (state.filter === 'published') return s.is_published;
+        if (state.filter === 'hidden') return !s.is_published;
+        return true;
+      });
+
+      if (!filtered.length) {
+        container.innerHTML = `
+          <div class="rounded-xl border border-dashed border-white/10 py-12 text-center">
+            <p class="text-sm font-medium text-slate-300">Слоты не найдены</p>
+            <p class="mt-1 text-xs text-slate-500">Добавьте аниме недели в форме слева или смените фильтр.</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map((item) => {
+        const title = escapeHtml(item.russian || item.name || `Shikimori #${item.shikimori_id}`);
+        const statusBadge = item.is_published
+          ? '<span class="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-300">Опубликовано</span>'
+          : '<span class="rounded-full bg-slate-500/20 px-2 py-0.5 text-[11px] font-medium text-slate-400">Скрыто</span>';
+
+        const thumb = item.banner_path
+          ? `<img src="${escapeHtml(item.banner_path)}" alt="${title}" class="h-full w-full object-cover" />`
+          : `<div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-900/60 to-rose-900/40 text-xs font-medium text-slate-300">16:9 Баннер</div>`;
+
+        return `
+          <article class="flex flex-col gap-4 rounded-xl border border-white/10 bg-[#0b0e17] p-3.5 transition hover:border-white/20 sm:flex-row sm:items-center">
+            <div class="relative aspect-video w-full shrink-0 overflow-hidden rounded-lg border border-white/10 sm:w-40">
+              ${thumb}
+              <span class="absolute left-2 top-2 rounded-md bg-black/75 px-2 py-0.5 text-[11px] font-bold text-white backdrop-blur">
+                Топ #${item.position}
+              </span>
+            </div>
+
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="rounded-md bg-white/5 px-2 py-0.5 text-[11px] font-mono text-slate-300">${escapeHtml(item.week_start)}</span>
+                ${statusBadge}
+                <span class="text-[11px] text-slate-500">ID: ${escapeHtml(item.shikimori_id)}</span>
+              </div>
+              <h3 class="mt-1.5 truncate text-sm font-semibold text-white">${title}</h3>
+              <p class="mt-0.5 truncate text-xs text-slate-400">${escapeHtml(item.tagline)}</p>
+            </div>
+
+            <div class="flex shrink-0 items-center gap-2 sm:flex-col sm:items-end">
+              <button type="button" data-action="toggle" data-id="${item.id}"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-200 transition hover:bg-white/10">
+                <i data-lucide="${item.is_published ? 'eye-off' : 'eye'}" class="h-3.5 w-3.5"></i>
+                <span>${item.is_published ? 'Скрыть' : 'Показать'}</span>
+              </button>
+              <button type="button" data-action="delete" data-id="${item.id}"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-300 transition hover:bg-rose-500/20">
+                <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                <span>Удалить</span>
+              </button>
+            </div>
+          </article>`;
+      }).join('');
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    async function loadSlots() {
+      if (state.demoMode) {
+        renderSlots();
+        return;
+      }
+
+      if (!window.location.protocol.startsWith('http') || !state.token) {
+        state.demoMode = true;
+        state.slots = [...DEMO_SLOTS];
+        updateModeUI();
+        renderSlots();
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/admin/anime-of-the-week', {
+          headers: { 'X-Admin-Token': state.token }
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        state.slots = await res.json();
+        renderSlots();
+      } catch (err) {
+        state.demoMode = true;
+        state.slots = [...DEMO_SLOTS];
+        updateModeUI();
+        renderSlots();
+        showToast('API недоступно или токен неверный — включён демо-режим', 'info');
+      }
+    }
+
+    async function searchAnime(query) {
+      const dropdown = document.getElementById('searchResultsDropdown');
+      if (!query.trim()) {
+        dropdown.classList.add('hidden');
+        return;
+      }
+
+      let items = [];
+      if (state.demoMode) {
+        const q = query.toLowerCase();
+        items = DEMO_CATALOG.filter((a) =>
+          a.russian.toLowerCase().includes(q) || a.name.toLowerCase().includes(q) || a.shikimori_id.includes(q)
+        );
+      } else {
+        try {
+          const res = await fetch(`/api/search/local?q=${encodeURIComponent(query)}`);
+          if (res.ok) items = await res.json();
+        } catch {
+          items = [];
+        }
+      }
+
+      if (!items.length) {
+        dropdown.innerHTML = '<p class="px-3 py-2 text-xs text-slate-400">Ничего не найдено</p>';
+      } else {
+        dropdown.innerHTML = items.slice(0, 8).map((a) => `
+          <button type="button" data-pick-id="${escapeHtml(a.shikimori_id)}" data-pick-title="${escapeHtml(a.russian || a.name)}"
+            class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs transition hover:bg-white/10">
+            <span class="truncate font-medium text-white">${escapeHtml(a.russian || a.name)}</span>
+            <span class="ml-2 shrink-0 font-mono text-[11px] text-indigo-300">#${escapeHtml(a.shikimori_id)}</span>
+          </button>`).join('');
+      }
+      dropdown.classList.remove('hidden');
+    }
+
+    function handleBannerFile(file) {
+      if (!file) return;
+      if (file.size > 10 * 1024 * 1024) {
+        showToast('Файл больше 10 МБ', 'error');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const ratio = img.width / img.height;
+          if (img.width < 1280) {
+            showToast(`Ширина ${img.width}px меньше минимума 1280px`, 'error');
+            return;
+          }
+          if (Math.abs(ratio - 16 / 9) > 0.15) {
+            showToast(`Соотношение ${ratio.toFixed(2)} отличается от 16:9`, 'error');
+          }
+          state.selectedFile = file;
+          document.getElementById('bannerPreviewImg').src = e.target.result;
+          document.getElementById('bannerMetaText').textContent = `${img.width}×${img.height} • ${(file.size / 1024 / 1024).toFixed(2)} МБ`;
+          document.getElementById('bannerPlaceholder').classList.add('hidden');
+          document.getElementById('bannerPreviewWrap').classList.remove('hidden');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function resetBanner() {
+      state.selectedFile = null;
+      document.getElementById('bannerFileInput').value = '';
+      document.getElementById('bannerPreviewImg').src = '';
+      document.getElementById('bannerPreviewWrap').classList.add('hidden');
+      document.getElementById('bannerPlaceholder').classList.remove('hidden');
+    }
+
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) lucide.createIcons();
+
+      try {
+        const saved = sessionStorage.getItem('yume_admin_token');
+        if (saved) {
+          state.token = saved;
+          document.getElementById('adminTokenInput').value = saved;
+        }
+      } catch {}
+
+      document.getElementById('weekStartInput').value = getMondayISO(new Date());
+      loadSlots();
+    });
+
+    document.getElementById('toggleTokenVisBtn').addEventListener('click', () => {
+      const input = document.getElementById('adminTokenInput');
+      input.type = input.type === 'password' ? 'text' : 'password';
+    });
+
+    document.getElementById('connectBtn').addEventListener('click', () => {
+      state.token = document.getElementById('adminTokenInput').value.trim();
+      try { sessionStorage.setItem('yume_admin_token', state.token); } catch {}
+      state.demoMode = false;
+      updateModeUI();
+      loadSlots();
+    });
+
+    document.getElementById('toggleDemoBtn').addEventListener('click', () => {
+      state.demoMode = !state.demoMode;
+      if (state.demoMode && !state.slots.length) state.slots = [...DEMO_SLOTS];
+      updateModeUI();
+      loadSlots();
+    });
+
+    document.getElementById('animeSearchInput').addEventListener('input', (e) => {
+      clearTimeout(state.searchTimer);
+      state.searchTimer = setTimeout(() => searchAnime(e.target.value), 250);
+    });
+
+    document.getElementById('searchResultsDropdown').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-pick-id]');
+      if (!btn) return;
+      document.getElementById('shikimoriIdInput').value = btn.dataset.pickId;
+      document.getElementById('selectedAnimeLabel').textContent = btn.dataset.pickTitle;
+      document.getElementById('searchResultsDropdown').classList.add('hidden');
+    });
+
+    document.getElementById('weekStartInput').addEventListener('change', (e) => {
+      const picked = e.target.value;
+      if (!picked) return;
+      const monday = getMondayISO(picked);
+      const warn = document.getElementById('weekWarning');
+      if (monday !== picked) {
+        e.target.value = monday;
+        warn.classList.remove('hidden');
+      } else {
+        warn.classList.add('hidden');
+      }
+    });
+
+    document.querySelectorAll('.pos-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.getElementById('positionInput').value = btn.dataset.pos;
+        document.querySelectorAll('.pos-btn').forEach((b) => {
+          const active = b === btn;
+          b.className = active
+            ? 'pos-btn rounded-xl border border-indigo-500 bg-indigo-500/20 py-2 text-xs font-semibold text-white transition'
+            : 'pos-btn rounded-xl border border-white/10 bg-[#0b0e17] py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/5';
+        });
+      });
+    });
+
+    document.getElementById('taglineInput').addEventListener('input', (e) => {
+      document.getElementById('taglineCounter').textContent = `${e.target.value.length} / 30`;
+    });
+
+    const dropzone = document.getElementById('bannerDropzone');
+    const fileInput = document.getElementById('bannerFileInput');
+    dropzone.addEventListener('click', (e) => {
+      if (e.target.closest('#clearBannerBtn')) return;
+      fileInput.click();
+    });
+    fileInput.addEventListener('change', (e) => handleBannerFile(e.target.files[0]));
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dropzone-active'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dropzone-active'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dropzone-active');
+      handleBannerFile(e.dataTransfer.files[0]);
+    });
+    document.getElementById('clearBannerBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      resetBanner();
+    });
+
+    document.querySelectorAll('.filter-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.filter = btn.dataset.filter;
+        document.querySelectorAll('.filter-btn').forEach((b) => {
+          b.className = b === btn
+            ? 'filter-btn rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium text-white'
+            : 'filter-btn rounded-lg px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white';
+        });
+        renderSlots();
+      });
+    });
+
+    document.getElementById('addSlotForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const shikimoriId = document.getElementById('shikimoriIdInput').value.trim();
+      const weekStart = document.getElementById('weekStartInput').value;
+      const position = Number(document.getElementById('positionInput').value);
+      const tagline = document.getElementById('taglineInput').value.trim();
+
+      if (!shikimoriId || !weekStart || tagline.length < 5) {
+        showToast('Заполните Shikimori ID, дату и слоган (от 5 символов)', 'error');
+        return;
+      }
+
+      if (state.demoMode) {
+        const previewSrc = document.getElementById('bannerPreviewImg').src;
+        const found = DEMO_CATALOG.find((a) => a.shikimori_id === shikimoriId);
+        state.slots = state.slots.filter((s) => !(s.week_start === weekStart && s.position === position));
+        state.slots.unshift({
+          id: Date.now(),
+          shikimori_id: shikimoriId,
+          russian: found ? found.russian : document.getElementById('selectedAnimeLabel').textContent || `Аниме #${shikimoriId}`,
+          week_start: weekStart,
+          position,
+          tagline,
+          banner_path: previewSrc || '',
+          is_published: true
+        });
+        renderSlots();
+        showToast('Слот добавлен (демо-режим)', 'success');
+        return;
+      }
+
+      if (!state.selectedFile) {
+        showToast('Выберите изображение баннера 16:9', 'error');
+        return;
+      }
+
+      const fd = new FormData();
+      fd.append('shikimori_id', shikimoriId);
+      fd.append('week_start', weekStart);
+      fd.append('position', String(position));
+      fd.append('tagline', tagline);
+      fd.append('banner', state.selectedFile);
+
+      try {
+        const res = await fetch('/api/admin/anime-of-the-week', {
+          method: 'POST',
+          headers: { 'X-Admin-Token': state.token },
+          body: fd
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Ошибка сохранения');
+        showToast('Аниме недели успешно сохранено', 'success');
+        resetBanner();
+        loadSlots();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    document.getElementById('slotsList').addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const id = Number(btn.dataset.id);
+      const action = btn.dataset.action;
+      const item = state.slots.find((s) => s.id === id);
+      if (!item) return;
+
+      if (action === 'toggle') {
+        if (state.demoMode) {
+          item.is_published = !item.is_published;
+          renderSlots();
+          showToast(item.is_published ? 'Слот опубликован' : 'Слот скрыт', 'success');
+          return;
+        }
+        try {
+          const res = await fetch(`/api/admin/anime-of-the-week/${id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Admin-Token': state.token
+            },
+            body: JSON.stringify({ is_published: !item.is_published })
+          });
+          if (!res.ok) throw new Error('Не удалось обновить статус');
+          showToast('Статус обновлён', 'success');
+          loadSlots();
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      }
+
+      if (action === 'delete') {
+        state.pendingDeleteId = id;
+        const modal = document.getElementById('deleteModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    });
+
+    function closeDeleteModal() {
+      state.pendingDeleteId = null;
+      const modal = document.getElementById('deleteModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    document.getElementById('cancelDeleteBtn').addEventListener('click', closeDeleteModal);
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+      const id = state.pendingDeleteId;
+      closeDeleteModal();
+      if (!id) return;
+
+      if (state.demoMode) {
+        state.slots = state.slots.filter((s) => s.id !== id);
+        renderSlots();
+        showToast('Слот удалён (демо-режим)', 'success');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/admin/anime-of-the-week/${id}`, {
+          method: 'DELETE',
+          headers: { 'X-Admin-Token': state.token }
+        });
+        if (!res.ok) throw new Error('Ошибка при удалении');
+        showToast('Слот и баннер удалены', 'success');
+        loadSlots();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+  </script>
+</body>
+</html>
