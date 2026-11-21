@@ -394,8 +394,8 @@ def admin_set_anime_of_the_week(
   if week_start.isoweekday() != 1:
     raise HTTPException(422, "week_start должен быть понедельником")
   tagline = tagline.strip()
-  if not 15 <= len(tagline) <= 20:
-    raise HTTPException(422, "Слоган должен быть 15-20 символов")
+  if not 5 <= len(tagline) <= 40:
+    raise HTTPException(422, "Слоган должен быть 5-40 символов")
 
   raw = banner.file.read(MAX_BANNER_BYTES + 1)
   if len(raw) > MAX_BANNER_BYTES:

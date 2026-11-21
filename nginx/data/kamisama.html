@@ -204,7 +204,7 @@
                   </label>
                   <span id="taglineCounter" class="text-xs font-mono text-rose-200/60">0 / 15–20</span>
                 </div>
-                <input id="taglineInput" type="text" minlength="15" maxlength="20" required
+                <input id="taglineInput" type="text" minlength="5" maxlength="40" required
                   placeholder="Например: Главный хит зимы!"
                   class="crimson-input w-full rounded-xl px-3 py-2.5 text-sm text-white placeholder-rose-200/30" />
               </div>
@@ -964,7 +964,7 @@
       const len = e.target.value.length;
       const counter = document.getElementById('taglineCounter');
       counter.textContent = `${len} / 15–20`;
-      counter.className = len >= 15 && len <= 20
+      counter.className = len >= 5 && len <= 40
         ? 'text-xs font-mono text-emerald-400'
         : 'text-xs font-mono text-rose-300';
     });
@@ -1070,8 +1070,8 @@
       if (!shikimoriId || !weekStart) {
         return showToast('Укажите Shikimori ID и неделю', 'error');
       }
-      if (tagline.length < 15 || tagline.length > 20) {
-        return showToast('Слоган должен быть от 15 до 20 символов', 'error');
+      if (tagline.length < 5 || tagline.length > 40) {
+        return showToast('Слоган должен быть от 5 до 40 символов', 'error');
       }
       if (!state.selectedFile) {
         return showToast('Выберите и при необходимости обрежьте арт', 'error');
