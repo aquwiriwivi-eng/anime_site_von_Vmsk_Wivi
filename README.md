@@ -48,6 +48,9 @@
 
 Сети и хранилища: nginx подключён к frontend_net и monitor_net; api — ко всем трём сетям (frontend_net, backend_net, monitor_net); postgre_sql и adminer_sql — только к backend_net; prometheus, grafana, alloy, loki — к monitor_net. При этом ./anime_photo примонтирован одновременно в nginx (/usr/share/nginx/html/anime_photo/) и в api (/code/app/anime_photo), а alloy читает логи всех контейнеров напрямую через /var/run/docker.sock.
 
+Известные ошибки:
+1) В архиве аниме недели в Админке нельзя ничего кликать в чем тогда смысл архива?
+
 Внешний поиск: GET /api/search/sync при каждом вызове делает локальный поиск в PostgreSQL, затем запрос к [https://shikimori.io/api/graphql](https://shikimori.io/api/graphql), параллельно скачивает постеры через .part-файлы в images.py и сохраняет новые тайтлы в anime_list.
 
 ![alt text](Documentation/Yume-Anime_Architecture_Easy.svg)
