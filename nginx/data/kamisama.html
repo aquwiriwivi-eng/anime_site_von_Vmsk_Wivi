@@ -963,7 +963,7 @@
     document.getElementById('taglineInput').addEventListener('input', (e) => {
       const len = e.target.value.length;
       const counter = document.getElementById('taglineCounter');
-      counter.textContent = `${len} / 15–20`;
+      counter.textContent = `${len} / 5–40`;
       counter.className = len >= 5 && len <= 40
         ? 'text-xs font-mono text-emerald-400'
         : 'text-xs font-mono text-rose-300';
