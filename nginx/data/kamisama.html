@@ -78,14 +78,6 @@
           <span>Войти в админку</span>
         </button>
       </form>
-
-      <div class="mt-5 border-t border-rose-500/15 pt-4 text-center">
-        <button id="enterDemoBtn" type="button"
-          class="inline-flex items-center gap-1.5 text-xs font-medium text-rose-300/80 transition hover:text-rose-200">
-          <i data-lucide="flask-conical" class="h-3.5 w-3.5"></i>
-          <span>Открыть демо-режим для предпросмотра</span>
-        </button>
-      </div>
     </div>
   </div>
 
@@ -98,12 +90,7 @@
             <i data-lucide="flame" class="h-5 w-5 text-white"></i>
           </div>
           <div>
-            <div class="flex items-center gap-2">
-              <span class="text-base font-bold tracking-tight text-white sm:text-lg">Yume-Anime Admin</span>
-              <span id="modeBadge" class="rounded-full bg-rose-500/15 px-2.5 py-0.5 text-xs font-medium text-rose-300 ring-1 ring-inset ring-rose-500/30">
-                Live API
-              </span>
-            </div>
+            <span class="text-base font-bold tracking-tight text-white sm:text-lg">Yume-Anime Admin</span>
             <p class="text-xs text-rose-200/60">Аниме недели и архив</p>
           </div>
         </div>
@@ -205,7 +192,7 @@
                   <span id="taglineCounter" class="text-xs font-mono text-rose-200/60">0 / 5–40</span>
                 </div>
                 <input id="taglineInput" type="text" minlength="5" maxlength="40" required
-                  placeholder="Например: Главный хит зимы!"
+                  placeholder="Например: Главный хит зимнего сезона!"
                   class="crimson-input w-full rounded-xl px-3 py-2.5 text-sm text-white placeholder-rose-200/30" />
               </div>
 
@@ -296,10 +283,10 @@
           <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 class="text-base font-semibold text-white">Архив прошлых недель</h2>
-              <p class="text-xs text-rose-200/60">История подборок из GET /api/anime-of-the-week/archive</p>
+              <p class="text-xs text-rose-200/60">Данные из GET /api/anime-of-the-week/archive</p>
             </div>
             <div class="flex items-center gap-2">
-              <input id="archiveYearInput" type="number" min="2020" max="2100" placeholder="Год (все)"
+              <input id="archiveYearInput" type="number" min="2000" max="2100" placeholder="Год (все)"
                 class="crimson-input w-28 rounded-xl px-3 py-1.5 text-xs text-white placeholder-rose-200/30" />
               <button id="loadArchiveBtn" type="button"
                 class="rounded-xl bg-rose-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-rose-500">
@@ -368,6 +355,31 @@
     </div>
   </div>
 
+  <!-- Overwrite Slot Confirmation Modal -->
+  <div id="overwriteModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+    <div class="crimson-card w-full max-w-md rounded-2xl p-6 shadow-2xl">
+      <div class="flex items-start gap-3">
+        <div class="rounded-xl bg-amber-500/15 p-2.5 text-amber-400">
+          <i data-lucide="alert-triangle" class="h-5 w-5"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-white">Слот уже занят</h3>
+          <p id="overwriteModalText" class="mt-1 text-xs leading-relaxed text-rose-200/80"></p>
+        </div>
+      </div>
+      <div class="mt-6 flex justify-end gap-2.5">
+        <button id="cancelOverwriteBtn" type="button"
+          class="rounded-xl border border-rose-500/20 bg-white/5 px-4 py-2 text-xs font-medium text-rose-100 hover:bg-white/10">
+          Отмена
+        </button>
+        <button id="confirmOverwriteBtn" type="button"
+          class="rounded-xl bg-rose-600 px-4 py-2 text-xs font-semibold text-white hover:bg-rose-500">
+          Да, перезаписать
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Delete Confirmation Modal -->
   <div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
     <div class="crimson-card w-full max-w-md rounded-2xl p-6 shadow-2xl">
@@ -400,10 +412,10 @@
 
   <script>
     const state = {
-      demoMode: false,
       slots: [],
       archive: [],
       pendingDeleteId: null,
+      pendingSubmitPayload: null,
       selectedFile: null,
       searchTimer: null,
       crop: {
@@ -418,19 +430,6 @@
         rawName: 'banner.webp'
       }
     };
-
-    const DEMO_CATALOG = [
-      { id: 1, shikimori_id: '52991', russian: 'Провожающая в последний путь Фрирен', name: 'Sousou no Frieren' },
-      { id: 2, shikimori_id: '51009', russian: 'Магическая битва 2', name: 'Jujutsu Kaisen 2nd Season' },
-      { id: 3, shikimori_id: '52299', russian: 'Поднятие уровня в одиночку', name: 'Ore dake Level Up na Ken' },
-      { id: 4, shikimori_id: '54492', russian: 'Монолог фармацевта', name: 'Kusuriya no Hitorigoto' }
-    ];
-
-    const DEMO_SLOTS = [
-      { id: 101, shikimori_id: '52991', russian: 'Провожающая в последний путь Фрирен', week_start: getMondayISO(new Date()), position: 1, tagline: 'Главный хит сезона!', banner_path: '', is_published: true },
-      { id: 102, shikimori_id: '54492', russian: 'Монолог фармацевта', week_start: getMondayISO(new Date()), position: 2, tagline: 'Интриги и детектив', banner_path: '', is_published: true },
-      { id: 103, shikimori_id: '52299', russian: 'Поднятие уровня в одиночку', week_start: '2026-11-09', position: 1, tagline: 'Лучший экшен недели', banner_path: '', is_published: false }
-    ];
 
     function getMondayISO(dateInput) {
       const d = new Date(dateInput);
@@ -468,8 +467,6 @@
     function showDashboard() {
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('adminApp').classList.remove('hidden');
-      const badge = document.getElementById('modeBadge');
-      badge.textContent = state.demoMode ? 'Демо-режим' : 'Live API';
     }
 
     function clearElement(el) {
@@ -510,7 +507,7 @@
         tdInfo.className = 'max-w-xs px-3.5 py-3';
         const titleEl = document.createElement('div');
         titleEl.className = 'truncate font-semibold text-white';
-        titleEl.textContent = item.russian || item.name || `Shikimori #${item.shikimori_id}`;
+        titleEl.textContent = item.title || item.russian || item.name || `Shikimori #${item.shikimori_id}`;
         const tagEl = document.createElement('div');
         tagEl.className = 'truncate text-[11px] text-rose-200/60';
         tagEl.textContent = `${item.tagline} • ID: ${item.shikimori_id}`;
@@ -576,7 +573,7 @@
         mediaWrap.className = 'relative aspect-video w-full bg-gradient-to-br from-rose-950/60 to-black';
         if (item.banner_path) {
           const img = document.createElement('img');
-          img.src = item.banner_path;
+          img.src = item.banner_path.startsWith('/') ? item.banner_path : `/${item.banner_path}`;
           img.alt = item.russian || item.name || 'Баннер';
           img.className = 'h-full w-full object-cover';
           mediaWrap.appendChild(img);
@@ -604,10 +601,6 @@
     }
 
     async function loadWeeks() {
-      if (state.demoMode) {
-        renderWeeksTable();
-        return;
-      }
       try {
         const res = await fetch('/api/admin/anime-of-the-week');
         if (res.status === 401) {
@@ -619,17 +612,12 @@
         showDashboard();
         renderWeeksTable();
       } catch {
-        showLoginScreen();
+        showLoginScreen('Не удалось подключиться к /api/admin/anime-of-the-week');
       }
     }
 
     async function loadArchive() {
       const year = document.getElementById('archiveYearInput').value.trim();
-      if (state.demoMode) {
-        state.archive = state.slots.filter((s) => !year || s.week_start.startsWith(year));
-        renderArchiveGrid();
-        return;
-      }
       try {
         const url = year ? `/api/anime-of-the-week/archive?year=${encodeURIComponent(year)}` : '/api/anime-of-the-week/archive';
         const res = await fetch(url);
@@ -642,20 +630,13 @@
     }
 
     async function handleToggleSlot(item) {
-      if (state.demoMode) {
-        item.is_published = !item.is_published;
-        renderWeeksTable();
-        showToast(item.is_published ? 'Слот показан' : 'Слот скрыт', 'success');
-        return;
-      }
+      const fd = new FormData();
+      fd.append('is_published', String(!item.is_published));
       try {
         const res = await fetch(`/api/admin/anime-of-the-week/${item.id}`, {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'admin-ui'
-          },
-          body: JSON.stringify({ is_published: !item.is_published })
+          headers: { 'X-Requested-With': 'admin-ui' },
+          body: fd
         });
         if (res.status === 401) return showLoginScreen('Сессия истекла');
         if (!res.ok) throw new Error('Ошибка обновления');
@@ -668,8 +649,9 @@
 
     function openDeleteModal(item) {
       state.pendingDeleteId = item.id;
+      const title = item.title || item.russian || item.name || item.shikimori_id;
       document.getElementById('deleteModalText').textContent =
-        `Удалить «${item.russian || item.name || item.shikimori_id}» (${item.week_start}, слот #${item.position})?`;
+        `Удалить «${title}» (${item.week_start}, слот #${item.position})?`;
       const modal = document.getElementById('deleteModal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
@@ -678,6 +660,23 @@
     function closeDeleteModal() {
       state.pendingDeleteId = null;
       const modal = document.getElementById('deleteModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function openOverwriteModal(existingItem, payload) {
+      state.pendingSubmitPayload = payload;
+      const existingTitle = existingItem.title || existingItem.russian || existingItem.name || `Shikimori #${existingItem.shikimori_id}`;
+      document.getElementById('overwriteModalText').textContent =
+        `Аниме «${existingTitle}» уже назначено в слот #${payload.position} и на понедельник ${payload.weekStart}. Вы действительно хотите перезаписать аниме? Предыдущее аниме уйдёт в архив.`;
+      const modal = document.getElementById('overwriteModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeOverwriteModal() {
+      state.pendingSubmitPayload = null;
+      const modal = document.getElementById('overwriteModal');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
     }
@@ -763,7 +762,6 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(state.crop.img, state.crop.offsetX, state.crop.offsetY, drawW, drawH);
 
-      // Rule of thirds grid overlay
       ctx.strokeStyle = 'rgba(244, 63, 94, 0.45)';
       ctx.lineWidth = 1;
       for (let i = 1; i <= 2; i++) {
@@ -810,18 +808,11 @@
       }
 
       let items = [];
-      if (state.demoMode) {
-        const q = query.toLowerCase();
-        items = DEMO_CATALOG.filter((a) =>
-          a.russian.toLowerCase().includes(q) || a.name.toLowerCase().includes(q) || a.shikimori_id.includes(q)
-        );
-      } else {
-        try {
-          const res = await fetch(`/api/search/local?q=${encodeURIComponent(query)}`);
-          if (res.ok) items = await res.json();
-        } catch {
-          items = [];
-        }
+      try {
+        const res = await fetch(`/api/search/local?q=${encodeURIComponent(query)}`);
+        if (res.ok) items = await res.json();
+      } catch {
+        items = [];
       }
 
       if (!items.length) {
@@ -856,15 +847,39 @@
       dropdown.classList.remove('hidden');
     }
 
+    async function executeSlotSave(payload, confirmOverwrite = false) {
+      const { shikimoriId, weekStart, position, tagline, file } = payload;
+
+      const fd = new FormData();
+      fd.append('shikimori_id', shikimoriId);
+      fd.append('week_start', weekStart);
+      fd.append('position', String(position));
+      fd.append('tagline', tagline);
+      fd.append('banner', file);
+      if (confirmOverwrite) fd.append('confirm_overwrite', 'true');
+
+      try {
+        const res = await fetch('/api/admin/anime-of-the-week', {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'admin-ui' },
+          body: fd
+        });
+        if (res.status === 401) return showLoginScreen('Сессия истекла');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || `Ошибка (${res.status})`);
+        showToast(confirmOverwrite ? 'Слот перезаписан' : 'Аниме недели сохранено', 'success');
+        resetBanner();
+        loadWeeks();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
     // Init & Event Wiring
     document.addEventListener('DOMContentLoaded', () => {
       if (window.lucide) lucide.createIcons();
       document.getElementById('weekStartInput').value = getMondayISO(new Date());
-      if (window.location.protocol.startsWith('http')) {
-        loadWeeks();
-      } else {
-        showLoginScreen();
-      }
+      loadWeeks();
     });
 
     document.getElementById('toggleLoginPassBtn').addEventListener('click', () => {
@@ -886,31 +901,20 @@
           return;
         }
         if (!res.ok) throw new Error(`Ошибка входа (${res.status})`);
-        state.demoMode = false;
         showDashboard();
         loadWeeks();
-      } catch {
-        showLoginScreen('Сервер недоступен. Используйте демо-режим для предпросмотра.');
+      } catch (err) {
+        showLoginScreen(err.message || 'Ошибка подключения к серверу');
       }
-    });
-
-    document.getElementById('enterDemoBtn').addEventListener('click', () => {
-      state.demoMode = true;
-      state.slots = [...DEMO_SLOTS];
-      showDashboard();
-      renderWeeksTable();
     });
 
     document.getElementById('logoutBtn').addEventListener('click', async () => {
-      if (!state.demoMode) {
-        try {
-          await fetch('/api/admin/logout', {
-            method: 'POST',
-            headers: { 'X-Requested-With': 'admin-ui' }
-          });
-        } catch {}
-      }
-      state.demoMode = false;
+      try {
+        await fetch('/api/admin/logout', {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'admin-ui' }
+        });
+      } catch {}
       document.getElementById('loginPasswordInput').value = '';
       showLoginScreen();
     });
@@ -969,7 +973,6 @@
         : 'text-xs font-mono text-rose-300';
     });
 
-    // Dropzone
     const dropzone = document.getElementById('bannerDropzone');
     const fileInput = document.getElementById('bannerFileInput');
     dropzone.addEventListener('click', (e) => {
@@ -993,7 +996,6 @@
       if (state.crop.img) openCropper(state.crop.img, state.crop.rawName);
     });
 
-    // Cropper Interactions
     const cropCanvas = document.getElementById('cropCanvas');
     cropCanvas.addEventListener('pointerdown', (e) => {
       state.crop.dragging = true;
@@ -1059,7 +1061,7 @@
       }, 'image/webp', 0.92);
     });
 
-    // Submit Add Form
+    // Submit Add Form with Overwrite Confirmation
     document.getElementById('addSlotForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const shikimoriId = document.getElementById('shikimoriIdInput').value.trim();
@@ -1077,61 +1079,29 @@
         return showToast('Выберите и при необходимости обрежьте арт', 'error');
       }
 
-      if (state.demoMode) {
-        const found = DEMO_CATALOG.find((a) => a.shikimori_id === shikimoriId);
-        state.slots = state.slots.filter((s) => !(s.week_start === weekStart && s.position === position));
-        state.slots.unshift({
-          id: Date.now(),
-          shikimori_id: shikimoriId,
-          russian: found ? found.russian : document.getElementById('selectedAnimeLabel').textContent || `Аниме #${shikimoriId}`,
-          week_start: weekStart,
-          position,
-          tagline,
-          banner_path: document.getElementById('bannerPreviewImg').src,
-          is_published: true
-        });
-        renderWeeksTable();
-        showToast('Добавлено в демо-таблицу', 'success');
+      const payload = { shikimoriId, weekStart, position, tagline, file: state.selectedFile };
+      const existing = state.slots.find((s) => s.week_start === weekStart && s.position === position);
+      if (existing) {
+        openOverwriteModal(existing, payload);
         return;
       }
 
-      const fd = new FormData();
-      fd.append('shikimori_id', shikimoriId);
-      fd.append('week_start', weekStart);
-      fd.append('position', String(position));
-      fd.append('tagline', tagline);
-      fd.append('banner', state.selectedFile);
-
-      try {
-        const res = await fetch('/api/admin/anime-of-the-week', {
-          method: 'POST',
-          headers: { 'X-Requested-With': 'admin-ui' },
-          body: fd
-        });
-        if (res.status === 401) return showLoginScreen('Сессия истекла');
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || `Ошибка (${res.status})`);
-        showToast('Аниме недели сохранено', 'success');
-        resetBanner();
-        loadWeeks();
-      } catch (err) {
-        showToast(err.message, 'error');
-      }
+      await executeSlotSave(payload, false);
     });
 
-    // Delete Modal Actions
+    document.getElementById('cancelOverwriteBtn').addEventListener('click', closeOverwriteModal);
+    document.getElementById('confirmOverwriteBtn').addEventListener('click', async () => {
+      const payload = state.pendingSubmitPayload;
+      closeOverwriteModal();
+      if (!payload) return;
+      await executeSlotSave(payload, true);
+    });
+
     document.getElementById('cancelDeleteBtn').addEventListener('click', closeDeleteModal);
     document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
       const id = state.pendingDeleteId;
       closeDeleteModal();
       if (!id) return;
-
-      if (state.demoMode) {
-        state.slots = state.slots.filter((s) => s.id !== id);
-        renderWeeksTable();
-        showToast('Запись удалена (демо)', 'success');
-        return;
-      }
 
       try {
         const res = await fetch(`/api/admin/anime-of-the-week/${id}`, {
