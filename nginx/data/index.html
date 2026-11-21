@@ -4,30 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yume-Anime — Каталог аниме</title>
-    <!-- Подключаем FontAwesome для иконок Telegram и WhatsApp -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Иконка вкладки браузера -->
     <link rel="icon" href="logo_vkladka.png" type="image/png">
-
-</head>
     <style>
-        /* Цветовая палитра в темно-розовых тонах */
         :root {
-            --bg-color: #190813;         /* Темно-розовый основной фон */
-            --card-bg: #280d20;         /* Фон карточек */
-            --card-border: #4a183d;     /* Границы элементов */
-            --accent-color: #ec4899;    /* Ярко-розовый акцент */
-            --accent-soft: #f472b6;     /* Нежно-розовый акцент */
-            --text-main: #fdf2f8;       /* Основной текст */
-            --text-muted: #d8b4fe;      /* Второстепенный текст */
-            --star-color: #fbbf24;      /* Цвет рейтинга */
+            --bg-color: #140610;
+            --bg-secondary: #1e0918;
+            --card-bg: rgba(40, 13, 32, 0.78);
+            --card-bg-solid: #280d20;
+            --card-border: rgba(236, 72, 153, 0.22);
+            --card-border-hover: rgba(236, 72, 153, 0.7);
+            --accent-color: #ec4899;
+            --accent-deep: #be185d;
+            --accent-soft: #f472b6;
+            --text-main: #fdf2f8;
+            --text-muted: #d8b4fe;
+            --text-body: #e2d4e8;
+            --star-color: #fbbf24;
+            --bg-image: none;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
@@ -39,73 +43,138 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow-x: hidden;
         }
 
-        /* 1. Заглушка фона background.png с 90% прозрачности */
+        /* Динамический фон с плавным появлением */
         body::before {
             content: '';
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
+            background-image: var(--bg-image);
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            opacity: 0.1;
+            opacity: 0.12;
+            z-index: -3;
+            pointer-events: none;
+            transition: opacity 1s ease;
+        }
+
+        /* Глубокий градиентный оверлей */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 18% 12%, rgba(236, 72, 153, 0.16), transparent 45%),
+                radial-gradient(circle at 85% 25%, rgba(168, 85, 247, 0.14), transparent 45%),
+                linear-gradient(to bottom, rgba(20, 6, 16, 0.45), rgba(20, 6, 16, 0.94));
             z-index: -2;
             pointer-events: none;
         }
 
-        /* 2. Нежно-розовый слой поверх фона */
-        body::after {
-            content: '';
+        /* Плавающие световые сферы (Aurora) */
+        .ambient-orbs {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at top, rgba(244, 114, 182, 0.15), transparent 80%),
-                        linear-gradient(to bottom, rgba(25, 8, 19, 0.4), rgba(25, 8, 19, 0.9));
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(70px);
+            opacity: 0.22;
+            animation: floatOrb 18s ease-in-out infinite alternate;
+        }
+
+        .orb-1 {
+            width: 380px;
+            height: 380px;
+            background: #ec4899;
+            top: -100px;
+            left: -80px;
+            animation-duration: 20s;
+        }
+
+        .orb-2 {
+            width: 320px;
+            height: 320px;
+            background: #9333ea;
+            bottom: 10%;
+            right: -60px;
+            animation-duration: 24s;
+            animation-delay: -6s;
+        }
+
+        /* Падающие лепестки сакуры / искры */
+        .sakura-canvas {
+            position: fixed;
+            inset: 0;
             z-index: -1;
             pointer-events: none;
         }
 
-        /* Шапка сайта */
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(40px, 30px) scale(1.08); }
+            100% { transform: translate(-25px, 55px) scale(0.95); }
+        }
+
+        /* --- ШАПКА САЙТА --- */
         header {
-            background-color: rgba(40, 13, 32, 0.85);
-            backdrop-filter: blur(12px);
+            background-color: rgba(28, 9, 23, 0.78);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             position: sticky;
             top: 0;
             z-index: 100;
             border-bottom: 1px solid var(--card-border);
+            transition: box-shadow 0.3s ease, background-color 0.3s ease;
+        }
+
+        header.scrolled {
+            background-color: rgba(20, 6, 16, 0.92);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(236, 72, 153, 0.25);
         }
 
         .header-container {
             max-width: 1200px;
+            width: 100%;
             margin: 0 auto;
-            padding: 16px 20px;
+            padding: 14px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 16px;
         }
 
-        /* Логотип с фото 1:1 */
         .logo-container {
             display: flex;
             align-items: center;
             gap: 12px;
             text-decoration: none;
+            group: logo;
         }
 
         .logo-img {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             aspect-ratio: 1 / 1;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: 10px;
             border: 2px solid var(--accent-color);
-            background-color: var(--card-bg);
+            background-color: var(--card-bg-solid);
+            box-shadow: 0 0 14px rgba(236, 72, 153, 0.35);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+        }
+
+        .logo-container:hover .logo-img {
+            transform: rotate(-6deg) scale(1.08);
+            box-shadow: 0 0 22px rgba(236, 72, 153, 0.65);
         }
 
         .logo-text {
@@ -116,24 +185,75 @@
         }
 
         .logo-text span {
-            color: var(--accent-color);
+            background: linear-gradient(90deg, var(--accent-color), var(--accent-soft), #f9a8d4, var(--accent-color));
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shimmerText 5s linear infinite;
         }
 
-        /* Общий контейнер контента */
+        @keyframes shimmerText {
+            to { background-position: 200% center; }
+        }
+
+        .header-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            background: rgba(236, 72, 153, 0.12);
+            border: 1px solid rgba(236, 72, 153, 0.35);
+            color: var(--accent-soft);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-family: inherit;
+        }
+
+        .header-action-btn:hover {
+            background: rgba(236, 72, 153, 0.24);
+            border-color: var(--accent-color);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px rgba(236, 72, 153, 0.3);
+        }
+
+        .header-action-btn:hover i {
+            transform: rotate(180deg);
+        }
+
+        .header-action-btn i {
+            transition: transform 0.5s ease;
+        }
+
+        /* --- ОСНОВНОЙ КОНТЕЙНЕР --- */
         .container {
             max-width: 1200px;
-            margin: 30px auto;
+            width: 100%;
+            margin: 32px auto;
             padding: 0 20px;
             flex-grow: 1;
         }
 
-        .section-title {
-            font-size: 22px;
-            margin-bottom: 20px;
+        .section-header {
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .section-title {
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
             font-weight: 700;
+            animation: fadeInLeft 0.6s ease both;
         }
 
         .section-title::before {
@@ -141,42 +261,73 @@
             display: inline-block;
             width: 4px;
             height: 24px;
-            background-color: var(--accent-color);
-            border-radius: 2px;
-            box-shadow: 0 0 10px var(--accent-color);
+            background: linear-gradient(to bottom, var(--accent-soft), var(--accent-deep));
+            border-radius: 4px;
+            box-shadow: 0 0 12px var(--accent-color);
         }
-		
-		/* --- СЕКЦИЯ: ПОИСКОВАЯ СТРОКА --- */
+
+        .reset-search-btn {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-family: inherit;
+        }
+
+        .reset-search-btn.visible {
+            display: inline-flex;
+            animation: fadeSlideUp 0.3s ease;
+        }
+
+        .reset-search-btn:hover {
+            background: rgba(236, 72, 153, 0.2);
+            border-color: var(--accent-color);
+            color: #fff;
+        }
+
+        /* --- ПОИСКОВАЯ СТРОКА --- */
         .search-section {
-            margin-bottom: 35px;
+            margin-bottom: 36px;
+            animation: fadeSlideUp 0.55s ease both;
         }
 
         .search-form {
             display: flex;
             align-items: center;
             background-color: var(--card-bg);
+            backdrop-filter: blur(12px);
             border: 1px solid var(--card-border);
-            border-radius: 12px;
+            border-radius: 14px;
             padding: 6px 8px 6px 18px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            position: relative;
         }
 
         .search-form:focus-within {
             border-color: var(--accent-color);
-            box-shadow: 0 0 20px rgba(236, 72, 153, 0.35);
-            background-color: rgba(40, 13, 32, 0.95);
+            box-shadow: 0 0 28px rgba(236, 72, 153, 0.32), 0 8px 24px rgba(0, 0, 0, 0.35);
+            background-color: rgba(40, 13, 32, 0.94);
+            transform: translateY(-2px);
         }
 
         .search-icon {
             color: var(--text-muted);
-            font-size: 18px;
+            font-size: 17px;
             margin-right: 12px;
-            transition: color 0.3s ease;
+            transition: color 0.3s ease, transform 0.3s ease;
         }
 
         .search-form:focus-within .search-icon {
             color: var(--accent-color);
+            transform: scale(1.1);
         }
 
         .search-input {
@@ -187,121 +338,186 @@
             color: var(--text-main);
             font-size: 16px;
             font-family: inherit;
+            transition: opacity 0.35s ease, transform 0.35s ease;
         }
 
         .search-input::placeholder {
             color: var(--text-muted);
-            opacity: 0.7;
+            opacity: 0.72;
+        }
+
+        .search-input.fade-out {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+
+        .search-clear-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 6px 10px;
+            font-size: 15px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+
+        .search-clear-btn.visible {
+            opacity: 0.8;
+            pointer-events: auto;
+        }
+
+        .search-clear-btn:hover {
+            opacity: 1;
+            color: var(--accent-soft);
+            transform: scale(1.15);
         }
 
         .search-btn {
-            background: linear-gradient(135deg, var(--accent-color), #be185d);
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--accent-color), var(--accent-deep));
             color: #ffffff;
             border: none;
-            padding: 10px 24px;
-            border-radius: 8px;
+            padding: 11px 26px;
+            border-radius: 10px;
             font-weight: 600;
             font-size: 15px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
             white-space: nowrap;
+            font-family: inherit;
+        }
+
+        .search-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+            transform: skewX(-20deg);
+            transition: left 0.55s ease;
+        }
+
+        .search-btn:hover::after {
+            left: 140%;
         }
 
         .search-btn:hover {
-            opacity: 0.9;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+            box-shadow: 0 6px 18px rgba(236, 72, 153, 0.45);
         }
 
-		/* --- СЕКЦИЯ: АНИМЕ НЕДЕЛИ (3 в ряд на ПК, 1 на телефоне) --- */
+        .search-btn:active {
+            transform: translateY(1px);
+        }
+
+        /* Статус поиска */
+        .search-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--accent-soft);
+            background: rgba(236, 72, 153, 0.12);
+            border: 1px solid rgba(236, 72, 153, 0.28);
+            padding: 8px 16px;
+            border-radius: 999px;
+            margin-top: 14px;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            animation: fadeSlideUp 0.3s ease;
+        }
+
+        .search-status.error {
+            color: #fda4af;
+            background: rgba(225, 29, 72, 0.15);
+            border-color: rgba(244, 63, 94, 0.4);
+        }
+
+        .search-status.fade-out {
+            opacity: 0;
+            transform: translateY(-6px);
+        }
+
+        /* --- СЕКЦИЯ: АНИМЕ НЕДЕЛИ --- */
         .weekly-section {
-            margin-bottom: 45px;
+            margin-bottom: 48px;
         }
 
         .weekly-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr); /* 3 в ряд на ПК */
+            grid-template-columns: repeat(3, 1fr);
             gap: 24px;
         }
 
-        /* --- СЕКЦИЯ: ОСНОВНОЙ КАТАЛОГ (4 в ряд на ПК, 2 на телефоне) --- */
-        .anime-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr); /* 4 в ряд на ПК */
-            gap: 28px;
-        }
-
-        /* Адаптивность для телефонов и планшетов (экраны меньше 850px) */
-        @media (max-width: 850px) {
-            .weekly-grid {
-                grid-template-columns: 1fr; /* 1 в ряд для аниме недели на телефоне */
-            }
-
-            .anime-grid {
-                grid-template-columns: repeat(2, 1fr); /* 2 в ряд для каталога на телефоне */
-                gap: 16px;
-            }
-        }
-
         .weekly-card {
+            display: flex;
+            flex-direction: column;
             background-color: var(--card-bg);
-            border-radius: 16px;
+            border-radius: 18px;
             overflow: hidden;
             border: 1px solid var(--card-border);
             position: relative;
-            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            opacity: 0;
+            animation: cardAppear 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.38s ease, border-color 0.35s ease;
         }
 
         .weekly-card:hover {
-            transform: translateY(-6px);
+            transform: translateY(-8px) scale(1.01);
             border-color: var(--accent-color);
-            box-shadow: 0 12px 30px rgba(236, 72, 153, 0.25);
+            box-shadow: 0 18px 38px rgba(236, 72, 153, 0.28), 0 0 0 1px rgba(236, 72, 153, 0.25);
         }
 
         .weekly-art-wrapper {
             position: relative;
             width: 100%;
-            padding-top: 56.25%; /* 16:9 */
+            padding-top: 56.25%;
             overflow: hidden;
             background-color: #12050e;
         }
 
         .weekly-art-img {
             position: absolute;
-            top: 0;
-            left: 0;
+            inset: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.4s ease;
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.4s ease;
         }
 
         .weekly-card:hover .weekly-art-img {
-            transform: scale(1.06);
+            transform: scale(1.08);
+            filter: brightness(1.08);
         }
 
         .weekly-art-overlay {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            top: 0;
-            background: linear-gradient(to top, rgba(40, 13, 32, 0.95) 10%, rgba(40, 13, 32, 0.2) 60%, transparent 100%);
+            inset: 0;
+            background: linear-gradient(to top, rgba(20, 6, 16, 0.96) 8%, rgba(40, 13, 32, 0.35) 55%, transparent 100%);
         }
 
         .weekly-badge {
             position: absolute;
             top: 12px;
             left: 12px;
-            background: linear-gradient(135deg, var(--accent-color), #be185d);
+            background: linear-gradient(135deg, var(--accent-color), var(--accent-deep));
             color: #fff;
             font-size: 11px;
             font-weight: 800;
             text-transform: uppercase;
-            padding: 4px 10px;
-            border-radius: 20px;
-            letter-spacing: 0.5px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            padding: 5px 12px;
+            border-radius: 999px;
+            letter-spacing: 0.6px;
+            box-shadow: 0 4px 14px rgba(236, 72, 153, 0.45);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .weekly-content {
@@ -309,7 +525,13 @@
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 16px;
+            padding: 18px;
+            transform: translateY(4px);
+            transition: transform 0.35s ease;
+        }
+
+        .weekly-card:hover .weekly-content {
+            transform: translateY(0);
         }
 
         .weekly-title {
@@ -317,28 +539,60 @@
             font-weight: 700;
             color: var(--text-main);
             margin-bottom: 4px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
         }
 
         .weekly-subtitle {
-            font-size: 12px;
+            font-size: 13px;
             color: var(--accent-soft);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .weekly-cta {
+            opacity: 0;
+            transform: translateX(-8px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+        }
+
+        .weekly-card:hover .weekly-cta {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* --- СЕКЦИЯ: ОСНОВНОЙ КАТАЛОГ --- */
+        .anime-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 26px;
         }
 
         .anime-card {
-            background-color: var(--card-bg);
-            border-radius: 14px;
-            overflow: hidden;
-            border: 1px solid var(--card-border);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
             display: flex;
             flex-direction: column;
+            background-color: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            opacity: 0;
+            animation: cardAppear 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, border-color 0.3s ease;
         }
 
         .anime-card:hover {
-            transform: translateY(-6px);
-            border-color: rgba(236, 72, 153, 0.5);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            transform: translateY(-8px);
+            border-color: var(--card-border-hover);
+            box-shadow: 0 16px 34px rgba(0, 0, 0, 0.55), 0 0 22px rgba(236, 72, 153, 0.22);
         }
 
         .poster-wrapper {
@@ -349,35 +603,58 @@
             background-color: #12050e;
         }
 
-        .poster-img {
+        /* Блик по постеру при наведении */
+        .poster-wrapper::after {
+            content: '';
             position: absolute;
             top: 0;
-            left: 0;
+            left: -120%;
+            width: 70%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+            transform: skewX(-22deg);
+            transition: left 0.65s ease;
+            pointer-events: none;
+        }
+
+        .anime-card:hover .poster-wrapper::after {
+            left: 140%;
+        }
+
+        .poster-img {
+            position: absolute;
+            inset: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.3s ease;
+            transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         .anime-card:hover .poster-img {
-            transform: scale(1.05);
+            transform: scale(1.07);
         }
 
         .rating-badge {
             position: absolute;
-            top: 12px;
-            right: 12px;
-            background-color: rgba(25, 8, 19, 0.85);
-            backdrop-filter: blur(4px);
+            top: 10px;
+            right: 10px;
+            background-color: rgba(20, 6, 16, 0.85);
+            backdrop-filter: blur(6px);
             color: var(--star-color);
             font-weight: 700;
-            font-size: 14px;
-            padding: 4px 8px;
-            border-radius: 6px;
+            font-size: 13px;
+            padding: 4px 10px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             gap: 4px;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease;
+        }
+
+        .anime-card:hover .rating-badge {
+            transform: scale(1.06);
         }
 
         .card-content {
@@ -388,58 +665,123 @@
         }
 
         .anime-title {
-            font-size: 17px;
+            font-size: 16px;
             font-weight: 700;
             margin-bottom: 4px;
             color: var(--text-main);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            transition: color 0.25s ease;
+        }
+
+        .anime-card:hover .anime-title {
+            color: var(--accent-soft);
         }
 
         .anime-sub {
             font-size: 12px;
             color: var(--text-muted);
-            margin-bottom: 12px;
+            margin-bottom: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .genres {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .genre-tag {
             font-size: 11px;
-            background-color: #3b1430;
+            background-color: rgba(236, 72, 153, 0.14);
             color: var(--accent-soft);
-            padding: 2px 8px;
-            border-radius: 4px;
-            border: 1px solid rgba(236, 72, 153, 0.2);
+            padding: 3px 9px;
+            border-radius: 6px;
+            border: 1px solid rgba(236, 72, 153, 0.25);
         }
 
         .description {
             font-size: 13px;
-            color: #cbd5e1;
-            line-height: 1.4;
+            color: var(--text-body);
+            opacity: 0.85;
+            line-height: 1.45;
             display: -webkit-box;
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
 
+        /* Скелетоны загрузки */
+        .skeleton-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .skeleton-box {
+            background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(236,72,153,0.12) 50%, rgba(255,255,255,0.04) 75%);
+            background-size: 200% 100%;
+            animation: shimmerLoad 1.5s infinite linear;
+        }
+
+        .skeleton-weekly {
+            padding-top: 56.25%;
+        }
+
+        .skeleton-poster {
+            padding-top: 140%;
+        }
+
+        .skeleton-line {
+            height: 14px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .skeleton-line.short { width: 60%; }
+        .skeleton-line.medium { width: 85%; }
+
+        @keyframes shimmerLoad {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 48px 24px;
+            background: var(--card-bg);
+            border: 1px dashed var(--card-border);
+            border-radius: 16px;
+            color: var(--text-muted);
+            animation: fadeSlideUp 0.4s ease;
+        }
+
+        .empty-state i {
+            font-size: 36px;
+            color: var(--accent-soft);
+            margin-bottom: 12px;
+            display: block;
+        }
+
         /* --- ПОДВАЛ (FOOTER) --- */
         footer {
-            background-color: rgba(25, 8, 19, 0.95);
+            background-color: rgba(20, 6, 16, 0.92);
+            backdrop-filter: blur(12px);
             border-top: 1px solid var(--card-border);
-            padding: 30px 0;
-            margin-top: 60px;
+            padding: 34px 20px;
+            margin-top: 64px;
             text-align: center;
         }
 
-        /* Три колонки: пусто | основной контент по центру | лого справа */
         .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
             width: 100%;
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -452,31 +794,27 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
+            position: relative;
+            z-index: 1;
         }
 
-        /* Лого-фото 16:9 с правой стороны подвала.
-           Края плавно растворяются в фон (маска), картинка слегка прозрачная. */
         .footer-logo {
             grid-column: 3;
             justify-self: end;
-            margin-right: 75px; /* отступ от правого края */
             display: block;
             line-height: 0;
-            pointer-events: none; /* плавные края не перекрывают ссылки рядом */
+            pointer-events: none;
         }
 
         .footer-logo-img {
-            width: 256px;
-            max-width: none;
+            width: 240px;
+            max-width: 100%;
             aspect-ratio: 16 / 9;
             object-fit: cover;
             display: block;
-            opacity: 0.85;
-            /* Три слоя маски складываются:
-               1) общий овал — виден фон картинки (звёзды, космос), плавно тает к краям;
-               2) подсветка иероглифа 夢 — слева, полная яркость;
-               3) подсветка アニメ — справа, такая же яркость, как у иероглифа. */
+            opacity: 0.88;
+            animation: gentleFloat 6s ease-in-out infinite;
             -webkit-mask-image:
                 radial-gradient(ellipse 30% 55% at 27% 50%, #000 0%, #000 65%, transparent 100%),
                 radial-gradient(ellipse 33% 30% at 74% 55%, #000 0%, #000 70%, transparent 100%),
@@ -487,29 +825,9 @@
                 radial-gradient(ellipse 50% 45% at 50% 50%, #000 35%, rgba(0,0,0,0.55) 65%, transparent 100%);
         }
 
-        /* Текст подвала поверх краёв логотипа */
-        .footer-main {
-            position: relative;
-            z-index: 1;
-            padding: 0 20px;
-        }
-
-        /* Телефоны и узкие окна: лого под текстом, по центру */
-        @media (max-width: 1150px) {
-            .footer-content {
-                grid-template-columns: 1fr;
-            }
-            .footer-main {
-                grid-column: 1;
-            }
-            .footer-logo {
-                grid-column: 1;
-                justify-self: center;
-                margin: 0;
-            }
-            .footer-logo-img {
-                width: 192px;
-            }
+        @keyframes gentleFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
         }
 
         .footer-text {
@@ -521,7 +839,7 @@
             color: var(--accent-soft);
             text-decoration: none;
             font-weight: 600;
-            transition: color 0.2s;
+            transition: color 0.2s ease;
         }
 
         .footer-email:hover {
@@ -540,11 +858,20 @@
 
         .footer-love i {
             color: var(--accent-color);
+            animation: heartbeat 1.8s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            15% { transform: scale(1.25); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.18); }
+            60% { transform: scale(1); }
         }
 
         .social-links {
             display: flex;
-            gap: 16px;
+            gap: 14px;
             margin-top: 4px;
         }
 
@@ -560,417 +887,597 @@
             justify-content: center;
             font-size: 18px;
             text-decoration: none;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .social-btn.telegram:hover {
             background-color: #229ED9;
             border-color: #229ED9;
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(34, 158, 217, 0.4);
+            transform: translateY(-4px) scale(1.08);
+            box-shadow: 0 6px 16px rgba(34, 158, 217, 0.45);
         }
 
         .social-btn.whatsapp:hover {
             background-color: #25D366;
             border-color: #25D366;
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+            transform: translateY(-4px) scale(1.08);
+            box-shadow: 0 6px 16px rgba(37, 211, 102, 0.45);
         }
-		
-		/* Анимация для плавной смены текста placeholder */
-		.search-input {
-			transition: opacity 0.4s ease, transform 0.4s ease;
-		}
 
-		.search-input.fade-out {
-			opacity: 0;
-			transform: translateY(-4px);
-		}
-		
-		/* Стили для кликабельной карточки аниме недели */
-		a.weekly-card {
-			display: flex;
-			flex-direction: column;
-			background-color: var(--card-bg);
-			border-radius: 16px;
-			overflow: hidden;
-			border: 1px solid var(--card-border);
-			position: relative;
-			text-decoration: none;
-			color: inherit;
-			transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-		}
+        /* --- КЛЮЧЕВЫЕ КАДРЫ ПОЯВЛЕНИЯ --- */
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: translateY(22px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
 
-		a.weekly-card:hover {
-			transform: translateY(-6px);
-			border-color: var(--accent-color);
-			box-shadow: 0 12px 30px rgba(236, 72, 153, 0.25);
-		}
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-		/* Стили для кликабельной карточки основного каталога */
-		a.anime-card {
-			display: flex;
-			flex-direction: column;
-			background-color: var(--card-bg);
-			border-radius: 14px;
-			overflow: hidden;
-			border: 1px solid var(--card-border);
-			text-decoration: none;
-			color: inherit;
-			transition: transform 0.2s ease, box-shadow 0.2s ease;
-		}
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-14px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
 
-		a.anime-card:hover {
-			transform: translateY(-6px);
-			border-color: rgba(236, 72, 153, 0.5);
-			box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-		}
-		
-		/* Статус поиска (плашка под поисковой строкой) */
-		.search-status {
-			font-size: 14px;
-			color: var(--text-muted);
-			margin-top: -20px;
-			margin-bottom: 25px;
-			transition: opacity 0.4s ease, transform 0.4s ease;
-			opacity: 1;
-			display: flex;
-			align-items: center;
-			gap: 8px;
-		}
+        /* --- АДАПТИВНОСТЬ --- */
+        @media (max-width: 1024px) {
+            .anime-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+            }
+        }
 
-.search-status.fade-out {
-    opacity: 0;
-    transform: translateY(-6px);
-}
+        @media (max-width: 900px) {
+            .weekly-grid {
+                grid-template-columns: 1fr;
+            }
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+            .footer-main {
+                grid-column: 1;
+            }
+            .footer-logo {
+                grid-column: 1;
+                justify-self: center;
+            }
+            .footer-logo-img {
+                width: 192px;
+            }
+        }
 
+        @media (max-width: 650px) {
+            .anime-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 14px;
+            }
+            .header-action-btn span {
+                display: none;
+            }
+            .search-btn {
+                padding: 10px 18px;
+                font-size: 14px;
+            }
+        }
+
+        /* Уважение к настройке уменьшения анимаций в ОС */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            .sakura-canvas {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
 
+    <div class="ambient-orbs" aria-hidden="true">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+    <canvas class="sakura-canvas" id="sakuraCanvas" aria-hidden="true"></canvas>
+
     <!-- Шапка -->
-    <header>
+    <header id="siteHeader">
         <div class="header-container">
-            <a href="#" class="logo-container">
-                <!-- Картинка 1:1 для логотипа -->
-                <img class="logo-img" src="logo.png" alt="Логотип" onerror="this.src='https://via.placeholder.com/100x100/ec4899/ffffff?text=Y';">
+            <a href="index.html" class="logo-container">
+                <img class="logo-img" src="logo.png" alt="Логотип Yume-Anime" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23ec4899%22/%3E%3Ctext x=%2250%22 y=%2266%22 font-size=%2254%22 font-family=%22Arial%22 font-weight=%22bold%22 text-anchor=%22middle%22 fill=%22white%22%3EY%3C/text%3E%3C/svg%3E';">
                 <div class="logo-text">Yume - <span>Anime</span></div>
             </a>
+
+            <button type="button" class="header-action-btn" id="refreshRandomBtn" title="Обновить подборку аниме">
+                <i class="fa-solid fa-shuffle"></i>
+                <span>Случайная подборка</span>
+            </button>
         </div>
     </header>
 
-    <div class="container">
-        
-		<!-- Поисковая строка -->
-        <div class="search-section">
-            <form action="/search" method="GET" class="search-form">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input 
-                    type="text" 
-                    name="q" 
-                    class="search-input" 
-                    placeholder="Поиск аниме по названию или жанрам..." 
-                    autocomplete="off" 
+    <main class="container">
+        <!-- Поисковая строка -->
+        <section class="search-section" aria-label="Поиск аниме">
+            <form action="/search" method="GET" class="search-form" id="searchForm">
+                <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
+                <input
+                    type="text"
+                    name="q"
+                    id="searchInput"
+                    class="search-input"
+                    placeholder="Поиск аниме по названию или жанрам..."
+                    autocomplete="off"
                     required
                 >
+                <button type="button" class="search-clear-btn" id="searchClearBtn" title="Очистить поиск" aria-label="Очистить поиск">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
                 <button type="submit" class="search-btn">Найти</button>
             </form>
-        </div>
-		
-        <!-- Секция: Аниме недели (3 больших арта 16:9) -->
+            <div id="searchStatusContainer" aria-live="polite"></div>
+        </section>
+
+        <!-- Секция: Аниме недели -->
         <section class="weekly-section">
-            <h2 class="section-title">Аниме недели</h2>
+            <div class="section-header">
+                <h2 class="section-title">Аниме недели</h2>
+            </div>
             <div class="weekly-grid" id="weeklyGrid"></div>
         </section>
 
         <!-- Секция: Основной каталог -->
         <section>
-            <h2 class="section-title">Каталог аниме</h2>
+            <div class="section-header">
+                <h2 class="section-title" id="catalogTitle">Каталог аниме</h2>
+                <button type="button" class="reset-search-btn" id="resetSearchBtn">
+                    <i class="fa-solid fa-rotate-left"></i> Вернуться к каталогу
+                </button>
+            </div>
             <div class="anime-grid" id="animeGrid"></div>
         </section>
-
-    </div>
+    </main>
 
     <!-- Подвал (Footer) -->
     <footer>
         <div class="footer-content">
             <div class="footer-main">
                 <p class="footer-text">
-                    Все вопросы, предложения и пожелания на почту: 
+                    Все вопросы, предложения и пожелания на почту:
                     <a href="mailto:vmskwivi@gmail.com" class="footer-email">vmskwivi@gmail.com</a>
                 </p>
                 <p class="footer-love">
-                    С любовью от Vmsk_Wivi <i class="fa-solid fa-heart"></i>
+                    С любовью от Vmsk_Wivi <i class="fa-solid fa-heart" aria-hidden="true"></i>
                 </p>
 
-                <!-- Иконки соцсетей -->
                 <div class="social-links">
-                    <a href="https://t.me/" target="_blank" class="social-btn telegram" title="Telegram">
+                    <a href="https://t.me/" target="_blank" rel="noopener noreferrer" class="social-btn telegram" title="Telegram" aria-label="Telegram">
                         <i class="fa-brands fa-telegram"></i>
                     </a>
-                    <a href="https://wa.me/" target="_blank" class="social-btn whatsapp" title="WhatsApp">
+                    <a href="https://wa.me/" target="_blank" rel="noopener noreferrer" class="social-btn whatsapp" title="WhatsApp" aria-label="WhatsApp">
                         <i class="fa-brands fa-whatsapp"></i>
                     </a>
                 </div>
             </div>
 
-            <!-- Лого-фото 16:9 (файл logo16_9.jfif) -->
             <div class="footer-logo">
-                <img class="footer-logo-img" src="logo_front/logo16_9.jfif" width="256" height="144" alt="Логотип Yume - Anime" onerror="this.onerror=null;this.src='https://via.placeholder.com/640x360/ec4899/ffffff?text=Yume';">
+                <img class="footer-logo-img" src="logo_front/logo16_9.jfif" width="240" height="135" alt="Логотип Yume - Anime" onerror="this.style.display='none';">
             </div>
         </div>
     </footer>
 
-	<!-- Скрипт рендеринга данных -->
     <script>
-        // 1. Данные для "Аниме недели" (Формат 16:9 остается статичным или его тоже можно потом перенести)
-        const weeklyAnimeData = [
-            {
-                id: 101,
-                title: "Атака титанов: Финал",
-                subtitle: "Главный тренд недели",
-                art16x9: "https://images.hdqwalls.com/wallpapers/attack-on-titan-season-4-2021-4k-bc.jpg"
-            },
-            {
-                id: 102,
-                title: "Магическая битва 2",
-                subtitle: "Выбор пользователей",
-                art16x9: "https://images.hdqwalls.com/wallpapers/jujutsu-kaisen-season-2-4k-io.jpg"
-            },
-            {
-                id: 103,
-                title: "Клинок, рассекающий демонов",
-                subtitle: "Самый высокий рейтинг",
-                art16x9: "https://images.hdqwalls.com/wallpapers/demon-slayer-kimetsu-no-yaiba-4k-2020-e2.jpg"
+        // Безопасное экранирование HTML для защиты от XSS
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // Локальная SVG-заглушка для постеров (работает даже без интернета)
+        const FALLBACK_POSTER = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 300 420%22%3E%3Crect width=%22300%22 height=%22420%22 fill=%22%23280d20%22/%3E%3Ctext x=%22150%22 y=%22215%22 font-size=%2218%22 font-family=%22sans-serif%22 text-anchor=%22middle%22 fill=%22%23f472b6%22%3EYume-Anime%3C/text%3E%3C/svg%3E';
+        const FALLBACK_BANNER = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 640 360%22%3E%3Crect width=%22640%22 height=%22360%22 fill=%22%23280d20%22/%3E%3Ctext x=%22320%22 y=%22185%22 font-size=%2224%22 font-family=%22sans-serif%22 text-anchor=%22middle%22 fill=%22%23f472b6%22%3EYume-Anime%3C/text%3E%3C/svg%3E';
+
+        // Рендер скелетонов загрузки
+        function showWeeklySkeletons() {
+            const container = document.getElementById('weeklyGrid');
+            container.innerHTML = Array.from({ length: 3 }, () => `
+                <div class="skeleton-card">
+                    <div class="skeleton-box skeleton-weekly"></div>
+                </div>
+            `).join('');
+        }
+
+        function showCatalogSkeletons(count = 8) {
+            const grid = document.getElementById('animeGrid');
+            grid.innerHTML = Array.from({ length: count }, () => `
+                <div class="skeleton-card">
+                    <div class="skeleton-box skeleton-poster"></div>
+                    <div class="card-content">
+                        <div class="skeleton-box skeleton-line medium"></div>
+                        <div class="skeleton-box skeleton-line short"></div>
+                        <div class="skeleton-box skeleton-line"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Загрузка "Аниме недели"
+        async function loadWeeklyAnime() {
+            const container = document.getElementById('weeklyGrid');
+            showWeeklySkeletons();
+
+            try {
+                const response = await fetch('/api/anime-of-the-week');
+                if (!response.ok) throw new Error('Ошибка загрузки аниме недели');
+
+                const data = await response.json();
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fa-regular fa-star"></i>
+                            <p>На эту неделю аниме пока не назначено.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = data.map((item, idx) => {
+                    const title = escapeHtml(item.russian || item.name || 'Аниме недели');
+                    const tagline = escapeHtml(item.tagline || 'Выбор редакции');
+                    const position = escapeHtml(item.position ?? (idx + 1));
+                    const bannerUrl = item.banner_path ? `/${encodeURI(item.banner_path.replace(/^\/+/, ''))}` : FALLBACK_BANNER;
+                    const detailId = encodeURIComponent(item.anime_id);
+
+                    return `
+                        <a href="anime_description.html?id=${detailId}" class="weekly-card" style="animation-delay: ${idx * 90}ms;">
+                            <div class="weekly-art-wrapper">
+                                <img class="weekly-art-img" src="${bannerUrl}" alt="${title}" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_BANNER}';">
+                                <div class="weekly-art-overlay"></div>
+                                <div class="weekly-badge"><i class="fa-solid fa-crown"></i> Топ #${position}</div>
+                                <div class="weekly-content">
+                                    <h3 class="weekly-title">${title}</h3>
+                                    <div class="weekly-subtitle">
+                                        <span>${tagline}</span>
+                                        <span class="weekly-cta">Открыть <i class="fa-solid fa-arrow-right"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Не удалось загрузить аниме недели:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <p>Не удалось загрузить аниме недели.</p>
+                    </div>
+                `;
             }
-        ];
-		
-        // Рендер "Аниме недели"
-		function renderWeeklyAnime(data) {
-			const container = document.getElementById('weeklyGrid');
-			container.innerHTML = data.map(item => `
-				<a href="anime.html?id=${item.id}" class="weekly-card">
-					<div class="weekly-art-wrapper">
-						<img class="weekly-art-img" src="${item.art16x9}" alt="${item.title}">
-						<div class="weekly-art-overlay"></div>
-						<div class="weekly-badge">Топ недели</div>
-						<div class="weekly-content">
-							<h3 class="weekly-title">${item.title}</h3>
-							<div class="weekly-subtitle">${item.subtitle}</div>
-						</div>
-					</div>
-				</a>
-			`).join('');
-		}
+        }
 
-		// Рендер основного каталога из базы данных PostgreSQL
-		function renderAnimeCards(data) {
-			const grid = document.getElementById('animeGrid');
-			
-			if (!data || data.length === 0) {
-				grid.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">В базе данных пока пусто. Воспользуйтесь поиском выше, чтобы добавить аниме!</p>';
-				return;
-			}
+        // Рендер основного каталога
+        function renderAnimeCards(data) {
+            const grid = document.getElementById('animeGrid');
 
-			grid.innerHTML = data.map(anime => {
-				const id = anime.id || anime.shikimori_id || 1; 
-				const russian = anime.russian || "Без названия";
-				const japanese = anime.japanese || "";
-				const name = anime.name || "";
-				const date = anime.date || "Н/Д";
-				const poster = anime.mainurl || anime.originalurl || 'https://via.placeholder.com/300x400/280d20/f78da7?text=No+Image';
+            if (!Array.isArray(data) || data.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <p>Ничего не найдено. Попробуйте изменить запрос или воспользоваться поиском выше!</p>
+                    </div>
+                `;
+                return;
+            }
 
-				return `
-					<a href="anime_description.html?id=${id}" class="anime-card">
-						<div class="poster-wrapper">
-							<img class="poster-img" src="${poster}" alt="${russian}">
-							<div class="rating-badge">★ База</div>
-						</div>
-						<div class="card-content">
-							<h2 class="anime-title">${russian}</h2>
-							<div class="anime-sub">${japanese} ${name ? '— ' + name : ''} (${date})</div>
-							<div class="genres">
-								<span class="genre-tag">Аниме</span>
-							</div>
-							<p class="description">Нажмите, чтобы открыть подробное описание и плеер.</p>
-						</div>
-					</a>
-				`;
-			}).join('');
-		}
+            grid.innerHTML = data.map((anime, idx) => {
+                const id = encodeURIComponent(anime.id || anime.shikimori_id || 1);
+                const russian = escapeHtml(anime.russian || anime.name || 'Без названия');
+                const japanese = escapeHtml(anime.japanese || '');
+                const name = escapeHtml(anime.name || '');
+                const date = escapeHtml(anime.date || 'Н/Д');
+                const poster = anime.mainurl || anime.originalurl || FALLBACK_POSTER;
+                const badgeText = anime.score ? `★ ${escapeHtml(anime.score)}` : '★ В базе';
+                const desc = escapeHtml(anime.description || 'Нажмите, чтобы открыть подробное описание и информацию.');
 
-        // Функция загрузки случайных аниме из базы данных при старте сайта
+                const genresList = Array.isArray(anime.genres) && anime.genres.length > 0
+                    ? anime.genres.slice(0, 3).map(g => `<span class="genre-tag">${escapeHtml(typeof g === 'string' ? g : (g.russian || g.name || 'Аниме'))}</span>`).join('')
+                    : '<span class="genre-tag">Аниме</span>';
+
+                return `
+                    <a href="anime_description.html?id=${id}" class="anime-card" style="animation-delay: ${Math.min(idx * 55, 500)}ms;">
+                        <div class="poster-wrapper">
+                            <img class="poster-img" src="${escapeHtml(poster)}" alt="${russian}" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_POSTER}';">
+                            <div class="rating-badge">${badgeText}</div>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="anime-title">${russian}</h3>
+                            <div class="anime-sub">${japanese}${name ? ' — ' + name : ''} (${date})</div>
+                            <div class="genres">${genresList}</div>
+                            <p class="description">${desc}</p>
+                        </div>
+                    </a>
+                `;
+            }).join('');
+        }
+
+        // Загрузка случайных аниме
         async function loadRandomAnime() {
+            const catalogTitle = document.getElementById('catalogTitle');
+            const resetBtn = document.getElementById('resetSearchBtn');
+            catalogTitle.textContent = 'Каталог аниме';
+            resetBtn.classList.remove('visible');
+            showCatalogSkeletons(8);
+
             try {
                 const response = await fetch('/api/random');
                 if (!response.ok) throw new Error('Ошибка загрузки каталога');
-                
+
                 const randomAnimeList = await response.json();
                 renderAnimeCards(randomAnimeList);
             } catch (error) {
                 console.error('Не удалось загрузить каталог:', error);
-                document.getElementById('animeGrid').innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">Ошибка подключения к базе данных :(</p>';
+                document.getElementById('animeGrid').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-database"></i>
+                        <p>Ошибка подключения к базе данных.</p>
+                    </div>
+                `;
             }
         }
 
-        // Инициализация при загрузке страницы
-        renderWeeklyAnime(weeklyAnimeData);
-        loadRandomAnime(); // <--- Загружаем случайные аниме из базы вместо заглушек!
-		
-		// Обработчик отправки поисковой формы (двухэтапный поиск)
-		const searchForm = document.querySelector('.search-form');
-		if (searchForm) {
-			searchForm.addEventListener('submit', async (e) => {
-				e.preventDefault();
+        // Двухэтапный поиск
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchInput');
+        const searchClearBtn = document.getElementById('searchClearBtn');
+        const resetSearchBtn = document.getElementById('resetSearchBtn');
+        const statusContainer = document.getElementById('searchStatusContainer');
 
-				const query = document.querySelector('.search-input').value.trim();
-				if (!query) return;
+        function setSearchStatus(html, isError = false) {
+            statusContainer.innerHTML = `
+                <div class="search-status ${isError ? 'error' : ''}" id="searchStatus">
+                    ${html}
+                </div>
+            `;
+        }
 
-				const sectionTitle = document.querySelector('.anime-grid').previousElementSibling;
-				if (sectionTitle) {
-					sectionTitle.textContent = `Результаты поиска: "${query}"`;
-				}
+        function clearSearchStatus(delay = 0) {
+            const el = document.getElementById('searchStatus');
+            if (!el) return;
+            if (delay === 0) {
+                statusContainer.innerHTML = '';
+                return;
+            }
+            el.classList.add('fade-out');
+            setTimeout(() => {
+                if (statusContainer.contains(el)) {
+                    statusContainer.innerHTML = '';
+                }
+            }, delay);
+        }
 
-				// Создаем или находим элемент для плашки статуса
-				let statusEl = document.getElementById('searchStatus');
-				if (!statusEl) {
-					statusEl = document.createElement('div');
-					statusEl.id = 'searchStatus';
-					statusEl.className = 'search-status';
-					document.querySelector('.search-section').after(statusEl);
-				}
-				
-				// Этап 1: Мгновенный показ результатов из локальной базы Postgres
-				statusEl.innerHTML = '<i class="fa-solid fa-database"></i> Поиск в локальной базе...';
-				statusEl.classList.remove('fade-out');
+        searchInput.addEventListener('input', () => {
+            searchClearBtn.classList.toggle('visible', searchInput.value.length > 0);
+        });
 
-				try {
-					const localResponse = await fetch(`/api/search/local?q=${encodeURIComponent(query)}`);
-					if (!localResponse.ok) throw new Error('Ошибка локального поиска');
-					const localResults = await localResponse.json();
+        searchClearBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            searchClearBtn.classList.remove('visible');
+            searchInput.focus();
+            clearSearchStatus();
+            loadRandomAnime();
+        });
 
-					if (localResults && localResults.length > 0) {
-						renderAnimeCards(localResults);
-					} else {
-						document.getElementById('animeGrid').innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">В локальной базе ничего не найдено. Ищем в внешних источниках...</p>';
-					}
+        resetSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            searchClearBtn.classList.remove('visible');
+            clearSearchStatus();
+            loadRandomAnime();
+        });
 
-					// Этап 2: Меняем статус и обращаемся к Шикимори (в фоновом режиме)
-					statusEl.innerHTML = '<i class="fa-solid fa-globe fa-spin"></i> Поиск из других источников...';
+        document.getElementById('refreshRandomBtn').addEventListener('click', () => {
+            searchInput.value = '';
+            searchClearBtn.classList.remove('visible');
+            clearSearchStatus();
+            loadRandomAnime();
+        });
 
-					const syncResponse = await fetch(`/api/search/sync?q=${encodeURIComponent(query)}`);
-					if (!syncResponse.ok) throw new Error('Ошибка синхронизации');
-					const fullResults = await syncResponse.json();
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-					// Когда данные пришли и записались в базу — обновляем сетку новыми карточками (с реальными ID!)
-					if (fullResults && fullResults.length > 0) {
-						renderAnimeCards(fullResults);
-					}
+            const query = searchInput.value.trim();
+            if (!query) {
+                searchInput.focus();
+                return;
+            }
 
-					// Плавное исчезновение плашки статуса с анимацией
-					statusEl.classList.add('fade-out');
-					setTimeout(() => {
-						statusEl.remove();
-					}, 400);
+            const catalogTitle = document.getElementById('catalogTitle');
+            catalogTitle.textContent = `Результаты поиска: «${query}»`;
+            resetSearchBtn.classList.add('visible');
+            showCatalogSkeletons(4);
 
-				} catch (error) {
-					console.error('Ошибка поиска:', error);
-					statusEl.textContent = 'Не удалось загрузить данные из внешних источников :( obat';
-				}
-			});
-		}
-		
-		// Список всех фоновых изображений из папки /backgrounds/ (любые форматы) 
-		// ПИШИ В массив bgImages ТОЧНЫЕ НАЗВАНИЕ ФАЙЛОВ ИЗ ПАПКИ backgrounds
-		const bgImages = [
-			'bg_1.webp',
-			'anime10.webp',
-			'anime199.webp',
-			'vaime38.webp',
-			'wanime12.webp',
-			'anime439.webp',
-			'anime12.webp',
-			'anime10.webp'
-		];
+            setSearchStatus('<i class="fa-solid fa-database fa-beat-fade"></i> Поиск в локальной базе...');
 
-		function setRandomBackground() {
-			if (!bgImages || bgImages.length === 0) return;
+            try {
+                const localResponse = await fetch(`/api/search/local?q=${encodeURIComponent(query)}`);
+                if (!localResponse.ok) throw new Error('Ошибка локального поиска');
+                const localResults = await localResponse.json();
 
-			// Выбираем случайную картинку из массива
-			const randomIndex = Math.floor(Math.random() * bgImages.length);
-			const randomImage = bgImages[randomIndex];
+                if (Array.isArray(localResults) && localResults.length > 0) {
+                    renderAnimeCards(localResults);
+                } else {
+                    document.getElementById('animeGrid').innerHTML = `
+                        <div class="empty-state">
+                            <i class="fa-solid fa-globe fa-spin"></i>
+                            <p>В локальной базе ничего не найдено. Ищем во внешних источниках...</p>
+                        </div>
+                    `;
+                }
 
-			// Применяем выбранное фото через CSS-переменную или напрямую в псевдоэлемент/style
-			// Добавляем стиль для body::before через динамическое правило
-			const style = document.createElement('style');
-			style.textContent = `
-				body::before {
-					background-image: url('backgrounds/${randomImage}') !important;
-				}
-			`;
-			document.head.appendChild(style);
-		}
+                setSearchStatus('<i class="fa-solid fa-globe fa-spin"></i> Поиск во внешних источниках...');
 
-		// Запускаем при загрузке страницы
-		setRandomBackground();
-		
-		
-		
-		// Массив с текстами для поиска
-		const searchPlaceholders = [
-			"Поиск аниме по названию или жанрам...",
-			"Что прикажете, моя госпожа?",
-			"Я найду для тебя абсолютно все, мой ангелочек!",
-			"Напиши название аниме на русском, английском или японском...",
-			"お好きに召ませ さばかりに強か",
-			"I wanna be with you^^",
-			"Можно тебя в щечку чмокнуть))",
-			"Найдем Аниме мечты на Yume-Anime"
-		];
+                const syncResponse = await fetch(`/api/search/sync?q=${encodeURIComponent(query)}`);
+                if (!syncResponse.ok) throw new Error('Ошибка синхронизации');
+                const fullResults = await syncResponse.json();
 
-		function initRandomPlaceholderRotator() {
-			const input = document.querySelector('.search-input');
-			if (!input || searchPlaceholders.length === 0) return;
+                if (Array.isArray(fullResults) && fullResults.length > 0) {
+                    renderAnimeCards(fullResults);
+                } else if (!localResults || localResults.length === 0) {
+                    renderAnimeCards([]);
+                }
 
-			// Вспомогательная функция для получения случайного индекса (с исключением текущего)
-			function getRandomIndex(exclude = -1) {
-				if (searchPlaceholders.length <= 1) return 0;
-				let randomIndex;
-				do {
-					randomIndex = Math.floor(Math.random() * searchPlaceholders.length);
-				} while (randomIndex === exclude);
-				return randomIndex;
-			}
+                clearSearchStatus(400);
+            } catch (error) {
+                console.error('Ошибка поиска:', error);
+                setSearchStatus('<i class="fa-solid fa-circle-exclamation"></i> Не удалось загрузить данные из внешних источников.', true);
+            }
+        });
 
-			// 1. Устанавливаем случайную фразу СРАЗУ при загрузке страницы
-			let currentIndex = getRandomIndex();
-			input.placeholder = searchPlaceholders[currentIndex];
+        // Случайный фон из папки /backgrounds/ (без дубликатов)
+        const bgImages = [
+            'bg_1.webp',
+            'anime10.webp',
+            'anime199.webp',
+            'vaime38.webp',
+            'wanime12.webp',
+            'anime439.webp',
+            'anime12.webp'
+        ];
 
-			// 2. Запускаем интервал смены каждые 10 секунд
-			setInterval(() => {
-				// Не меняем текст, если пользователь кликнул в поле или уже вводит текст
-				if (document.activeElement === input || input.value.trim() !== '') {
-					return;
-				}
+        function setRandomBackground() {
+            if (!bgImages.length) return;
+            const randomImage = bgImages[Math.floor(Math.random() * bgImages.length)];
+            document.documentElement.style.setProperty('--bg-image', `url('backgrounds/${randomImage}')`);
+        }
 
-				// Запускаем плавное исчезновение
-				input.classList.add('fade-out');
+        // Ротация подсказок в строке поиска (каждые 6 секунд)
+        const searchPlaceholders = [
+            'Поиск аниме по названию или жанрам...',
+            'Что прикажете, моя госпожа?',
+            'Я найду для тебя абсолютно все, мой ангелочек!',
+            'Напиши название аниме на русском, английском или японском...',
+            'お好きに召ませ さばかりに強か',
+            'I wanna be with you^^',
+            'Можно тебя в щечку чмокнуть))',
+            'Найдем Аниме мечты на Yume-Anime'
+        ];
 
-				setTimeout(() => {
-					// Выбираем следующий случайный индекс (не повторяя текущий)
-					currentIndex = getRandomIndex(currentIndex);
-					
-					// Меняем текст и возвращаем видимость
-					input.placeholder = searchPlaceholders[currentIndex];
-					input.classList.remove('fade-out');
-				}, 400); // 400ms — время анимации в CSS
-				
-			}, 4000); // 10000ms = 10 секунд
-		}
+        function initRandomPlaceholderRotator() {
+            if (!searchInput || searchPlaceholders.length === 0) return;
 
-		// Запускаем ротацию при загрузке страницы
-		initRandomPlaceholderRotator();
+            function getRandomIndex(exclude = -1) {
+                if (searchPlaceholders.length <= 1) return 0;
+                let idx;
+                do {
+                    idx = Math.floor(Math.random() * searchPlaceholders.length);
+                } while (idx === exclude);
+                return idx;
+            }
 
+            let currentIndex = getRandomIndex();
+            searchInput.placeholder = searchPlaceholders[currentIndex];
+
+            setInterval(() => {
+                if (document.activeElement === searchInput || searchInput.value.trim() !== '') return;
+
+                searchInput.classList.add('fade-out');
+                setTimeout(() => {
+                    currentIndex = getRandomIndex(currentIndex);
+                    searchInput.placeholder = searchPlaceholders[currentIndex];
+                    searchInput.classList.remove('fade-out');
+                }, 350);
+            }, 6000);
+        }
+
+        // Эффект скролла для шапки
+        window.addEventListener('scroll', () => {
+            document.getElementById('siteHeader').classList.toggle('scrolled', window.scrollY > 12);
+        }, { passive: true });
+
+        // Анимация падающих лепестков сакуры на Canvas
+        function initSakuraParticles() {
+            const canvas = document.getElementById('sakuraCanvas');
+            if (!canvas || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            const ctx = canvas.getContext('2d');
+            let width = canvas.width = window.innerWidth;
+            let height = canvas.height = window.innerHeight;
+
+            window.addEventListener('resize', () => {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            });
+
+            const petalCount = Math.min(26, Math.max(12, Math.floor(width / 60)));
+            const petals = Array.from({ length: petalCount }, () => ({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                size: 3 + Math.random() * 5,
+                speedY: 0.4 + Math.random() * 0.9,
+                speedX: -0.3 + Math.random() * 0.6,
+                angle: Math.random() * Math.PI * 2,
+                spin: (Math.random() - 0.5) * 0.02,
+                opacity: 0.18 + Math.random() * 0.35
+            }));
+
+            function draw() {
+                ctx.clearRect(0, 0, width, height);
+                for (const p of petals) {
+                    p.y += p.speedY;
+                    p.x += p.speedX + Math.sin(p.y * 0.01) * 0.35;
+                    p.angle += p.spin;
+
+                    if (p.y > height + 10) {
+                        p.y = -10;
+                        p.x = Math.random() * width;
+                    }
+                    if (p.x > width + 10) p.x = -10;
+                    if (p.x < -10) p.x = width + 10;
+
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.angle);
+                    ctx.fillStyle = `rgba(244, 114, 182, ${p.opacity})`;
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, p.size, p.size * 0.55, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+                requestAnimationFrame(draw);
+            }
+            requestAnimationFrame(draw);
+        }
+
+        // Инициализация приложения
+        setRandomBackground();
+        initRandomPlaceholderRotator();
+        initSakuraParticles();
+        loadWeeklyAnime();
+        loadRandomAnime();
     </script>
 </body>
 </html>

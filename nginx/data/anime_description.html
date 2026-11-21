@@ -5,134 +5,515 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Подробная информация — Yume-Anime</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="logo_vkladka.png" type="image/png">
     <style>
         :root {
-            --bg-color: #190813;
-            --card-bg: #280d20;
-            --card-border: #4a183d;
+            --bg-color: #140610;
+            --card-bg: rgba(40, 13, 32, 0.8);
+            --card-bg-solid: #280d20;
+            --card-border: rgba(236, 72, 153, 0.24);
             --accent-color: #ec4899;
+            --accent-deep: #be185d;
             --accent-soft: #f472b6;
             --text-main: #fdf2f8;
             --text-muted: #d8b4fe;
+            --text-body: #e2d4e8;
+            --star-color: #fbbf24;
+            --poster-backdrop: none;
         }
-        body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
+
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-        .container {
-            max-width: 1000px;
-            margin: 40px auto;
-            padding: 0 20px;
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
         }
+
+        /* Размытый фон из постера текущего аниме */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: -30px;
+            background-image: var(--poster-backdrop);
+            background-size: cover;
+            background-position: center;
+            filter: blur(45px) saturate(1.2);
+            opacity: 0.22;
+            z-index: -2;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 15%, rgba(236, 72, 153, 0.16), transparent 50%),
+                linear-gradient(to bottom, rgba(20, 6, 16, 0.55), rgba(20, 6, 16, 0.96));
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Шапка в едином стиле с index.html */
+        header {
+            background-color: rgba(28, 9, 23, 0.78);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .header-container {
+            max-width: 1040px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-img {
+            width: 40px;
+            height: 40px;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 0 14px rgba(236, 72, 153, 0.35);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .logo-container:hover .logo-img {
+            transform: rotate(-6deg) scale(1.08);
+        }
+
+        .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .logo-text span {
+            background: linear-gradient(90deg, var(--accent-color), var(--accent-soft), #f9a8d4, var(--accent-color));
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shimmerText 5s linear infinite;
+        }
+
+        @keyframes shimmerText {
+            to { background-position: 200% center; }
+        }
+
+        .container {
+            max-width: 1040px;
+            width: 100%;
+            margin: 32px auto;
+            padding: 0 20px;
+            flex-grow: 1;
+        }
+
         .back-link {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             color: var(--accent-soft);
             text-decoration: none;
-            margin-bottom: 20px;
+            margin-bottom: 22px;
             font-weight: 600;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            background: rgba(236, 72, 153, 0.1);
+            border: 1px solid rgba(236, 72, 153, 0.25);
+            transition: all 0.28s ease;
+            animation: fadeInLeft 0.5s ease both;
         }
+
         .back-link:hover {
-            text-decoration: underline;
+            background: rgba(236, 72, 153, 0.22);
+            border-color: var(--accent-color);
+            color: #fff;
+            transform: translateX(-4px);
         }
+
         .anime-detail-card {
             background-color: var(--card-bg);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
             border: 1px solid var(--card-border);
-            border-radius: 16px;
-            padding: 30px;
+            border-radius: 22px;
+            padding: 32px;
             display: flex;
-            gap: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            gap: 34px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), 0 0 35px rgba(236, 72, 153, 0.12);
+            animation: cardAppear 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
+
+        .poster-column {
+            flex-shrink: 0;
+            perspective: 900px;
+        }
+
         .anime-poster {
-            width: 300px;
-            height: 420px;
-            border-radius: 12px;
+            width: 290px;
+            height: 410px;
+            border-radius: 16px;
             object-fit: cover;
-            border: 2px solid var(--card-border);
+            border: 2px solid rgba(236, 72, 153, 0.35);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.5);
+            transition: transform 0.25s ease, box-shadow 0.3s ease;
+            display: block;
         }
+
+        .anime-poster:hover {
+            box-shadow: 0 18px 40px rgba(236, 72, 153, 0.3);
+        }
+
+        .anime-info {
+            flex: 1;
+            min-width: 0;
+        }
+
         .anime-info h1 {
-            font-size: 28px;
+            font-size: 30px;
+            font-weight: 800;
+            line-height: 1.2;
             margin-bottom: 8px;
+            color: var(--text-main);
         }
+
         .anime-info .sub {
             color: var(--text-muted);
             font-size: 14px;
+            margin-bottom: 18px;
+        }
+
+        .meta-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
             margin-bottom: 20px;
         }
-        .anime-info p {
-            line-height: 1.6;
-            color: #cbd5e1;
-            margin-top: 15px;
+
+        .meta-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
         }
+
+        .meta-pill.rating {
+            color: var(--star-color);
+            border-color: rgba(251, 191, 36, 0.35);
+            background: rgba(251, 191, 36, 0.1);
+        }
+
+        .genres {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .genre-tag {
+            background: rgba(236, 72, 153, 0.14);
+            color: var(--accent-soft);
+            border: 1px solid rgba(236, 72, 153, 0.28);
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .genre-tag:hover {
+            transform: translateY(-2px);
+            background: rgba(236, 72, 153, 0.28);
+        }
+
+        .description-heading {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--accent-soft);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .anime-description-text {
+            color: var(--text-body);
+            font-size: 15px;
+            line-height: 1.7;
+            white-space: pre-line;
+        }
+
+        /* Скелетон загрузки */
+        .skeleton-box {
+            background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(236,72,153,0.12) 50%, rgba(255,255,255,0.04) 75%);
+            background-size: 200% 100%;
+            animation: shimmerLoad 1.5s infinite linear;
+            border-radius: 12px;
+        }
+
+        @keyframes shimmerLoad {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .state-box {
+            background: var(--card-bg);
+            border: 1px dashed var(--card-border);
+            border-radius: 18px;
+            padding: 48px 24px;
+            text-align: center;
+            color: var(--text-muted);
+            animation: cardAppear 0.4s ease;
+        }
+
+        .state-box i {
+            font-size: 36px;
+            color: var(--accent-soft);
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        footer {
+            background-color: rgba(20, 6, 16, 0.9);
+            border-top: 1px solid var(--card-border);
+            padding: 22px 20px;
+            margin-top: 48px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        footer i {
+            color: var(--accent-color);
+            animation: heartbeat 1.8s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            15% { transform: scale(1.25); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.18); }
+            60% { transform: scale(1); }
+        }
+
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-14px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
         @media (max-width: 768px) {
             .anime-detail-card {
                 flex-direction: column;
                 align-items: center;
+                padding: 22px;
+                gap: 24px;
+            }
+            .anime-info {
                 text-align: center;
+            }
+            .meta-pills, .genres, .description-heading {
+                justify-content: center;
             }
             .anime-poster {
                 width: 100%;
-                max-width: 280px;
+                max-width: 260px;
                 height: auto;
+                aspect-ratio: 300 / 420;
+            }
+            .anime-info h1 {
+                font-size: 24px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
             }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Вернуться на главную</a>
-        
-        <div id="animeDetails" style="color: var(--text-muted);">
-            Загрузка информации об аниме...
+    <header>
+        <div class="header-container">
+            <a href="index.html" class="logo-container">
+                <img class="logo-img" src="logo.png" alt="Логотип Yume-Anime" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23ec4899%22/%3E%3Ctext x=%2250%22 y=%2266%22 font-size=%2254%22 font-family=%22Arial%22 font-weight=%22bold%22 text-anchor=%22middle%22 fill=%22white%22%3EY%3C/text%3E%3C/svg%3E';">
+                <div class="logo-text">Yume - <span>Anime</span></div>
+            </a>
         </div>
-    </div>
+    </header>
+
+    <main class="container">
+        <a href="index.html" class="back-link" id="backLink">
+            <i class="fa-solid fa-arrow-left"></i> Вернуться на главную
+        </a>
+
+        <div id="animeDetails">
+            <div class="anime-detail-card">
+                <div class="skeleton-box" style="width: 290px; height: 410px; flex-shrink: 0;"></div>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 14px;">
+                    <div class="skeleton-box" style="height: 36px; width: 70%;"></div>
+                    <div class="skeleton-box" style="height: 18px; width: 45%;"></div>
+                    <div class="skeleton-box" style="height: 28px; width: 55%;"></div>
+                    <div class="skeleton-box" style="height: 140px; width: 100%; margin-top: 10px;"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        С любовью от Vmsk_Wivi <i class="fa-solid fa-heart" aria-hidden="true"></i>
+    </footer>
 
     <script>
-        // Считываем ID из параметров URL (например: anime.html?id=12)
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        const FALLBACK_POSTER = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 300 420%22%3E%3Crect width=%22300%22 height=%22420%22 fill=%22%23280d20%22/%3E%3Ctext x=%22150%22 y=%22215%22 font-size=%2218%22 font-family=%22sans-serif%22 text-anchor=%22middle%22 fill=%22%23f472b6%22%3EYume-Anime%3C/text%3E%3C/svg%3E';
+
         const urlParams = new URLSearchParams(window.location.search);
         const animeId = urlParams.get('id');
 
-		async function loadAnimeDetails() {
+        async function loadAnimeDetails() {
+            const container = document.getElementById('animeDetails');
+
             if (!animeId) {
-                document.getElementById('animeDetails').innerHTML = 'Аниме не найдено.';
+                container.innerHTML = `
+                    <div class="state-box">
+                        <i class="fa-solid fa-circle-question"></i>
+                        <p>Аниме не найдено: не указан идентификатор.</p>
+                    </div>
+                `;
                 return;
             }
 
             try {
-                // Запрос к бэкенду за подробными данными конкретного аниме
-                const response = await fetch(`/api/anime/${animeId}`);
+                const response = await fetch(`/api/anime/${encodeURIComponent(animeId)}`);
                 if (!response.ok) throw new Error('Аниме не найдено в базе данных');
 
                 const anime = await response.json();
 
-                // Объявляем переменную title для заголовка и alt у картинки
-                const title = anime.russian || anime.name || "Без названия";
-                const japanese = anime.japanese || "名前はありません"; 
-                const date = anime.date || "Н/Д";
-                const poster = anime.mainurl || anime.originalurl || 'https://via.placeholder.com/300x400';
-                const description = anime.description || "Описание для этого аниме пока не добавлено.";
+                const title = escapeHtml(anime.russian || anime.name || 'Без названия');
+                const japanese = escapeHtml(anime.japanese || '名前はありません');
+                const nameEn = anime.name && anime.name !== anime.russian ? ` · ${escapeHtml(anime.name)}` : '';
+                const date = escapeHtml(anime.date || 'Н/Д');
+                const poster = anime.mainurl || anime.originalurl || FALLBACK_POSTER;
+                const description = escapeHtml(anime.description || 'Описание для этого аниме пока не добавлено.');
 
-                document.getElementById('animeDetails').innerHTML = `
+                document.title = `${anime.russian || anime.name || 'Аниме'} — Yume-Anime`;
+                if (poster && poster !== FALLBACK_POSTER) {
+                    document.documentElement.style.setProperty('--poster-backdrop', `url('${poster}')`);
+                }
+
+                const pills = [];
+                if (anime.score) pills.push(`<span class="meta-pill rating"><i class="fa-solid fa-star"></i> ${escapeHtml(anime.score)}</span>`);
+                if (anime.kind) pills.push(`<span class="meta-pill"><i class="fa-solid fa-tv"></i> ${escapeHtml(anime.kind)}</span>`);
+                if (anime.episodes) pills.push(`<span class="meta-pill"><i class="fa-solid fa-film"></i> Эпизодов: ${escapeHtml(anime.episodes)}</span>`);
+                if (anime.status) pills.push(`<span class="meta-pill"><i class="fa-solid fa-signal"></i> ${escapeHtml(anime.status)}</span>`);
+                pills.push(`<span class="meta-pill"><i class="fa-regular fa-calendar"></i> ${date}</span>`);
+
+                const genresHtml = Array.isArray(anime.genres) && anime.genres.length > 0
+                    ? anime.genres.map(g => `<span class="genre-tag">${escapeHtml(typeof g === 'string' ? g : (g.russian || g.name || 'Аниме'))}</span>`).join('')
+                    : '<span class="genre-tag">Аниме</span>';
+
+                container.innerHTML = `
                     <div class="anime-detail-card">
-                        <img class="anime-poster" src="${poster}" alt="${title}">
+                        <div class="poster-column">
+                            <img class="anime-poster" id="detailPoster" src="${escapeHtml(poster)}" alt="${title}" onerror="this.onerror=null;this.src='${FALLBACK_POSTER}';">
+                        </div>
                         <div class="anime-info">
                             <h1>${title}</h1>
-                            <div class="sub">${japanese} (${date})</div>
-                            <div class="genres" style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">
-                                <span class="genre-tag" style="background: #3b1430; color: var(--accent-soft); padding: 4px 10px; border-radius: 6px; font-size: 12px;">Аниме</span>
-                            </div>
-                            <h3>Описание</h3>
-                            <p>${description}</p>
+                            <div class="sub">${japanese}${nameEn}</div>
+                            <div class="meta-pills">${pills.join('')}</div>
+                            <div class="genres">${genresHtml}</div>
+                            <h3 class="description-heading"><i class="fa-solid fa-align-left"></i> Описание</h3>
+                            <p class="anime-description-text">${description}</p>
                         </div>
                     </div>
                 `;
+
+                // Лёгкий 3D-эффект наклона постера при движении мыши
+                const posterEl = document.getElementById('detailPoster');
+                if (posterEl && window.matchMedia('(hover: hover)').matches) {
+                    posterEl.addEventListener('mousemove', (e) => {
+                        const rect = posterEl.getBoundingClientRect();
+                        const x = (e.clientX - rect.left) / rect.width - 0.5;
+                        const y = (e.clientY - rect.top) / rect.height - 0.5;
+                        posterEl.style.transform = `rotateY(${x * 10}deg) rotateX(${-y * 10}deg) scale(1.02)`;
+                    });
+                    posterEl.addEventListener('mouseleave', () => {
+                        posterEl.style.transform = '';
+                    });
+                }
             } catch (error) {
                 console.error(error);
-                document.getElementById('animeDetails').innerHTML = 'Не удалось загрузить информацию об аниме :(';
+                container.innerHTML = `
+                    <div class="state-box">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <p>Не удалось загрузить информацию об аниме.</p>
+                    </div>
+                `;
             }
         }
 

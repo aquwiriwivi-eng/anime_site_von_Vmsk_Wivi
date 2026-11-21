@@ -1,5 +1,3 @@
-<div align="center">
-
 # 🌸 Yume-Anime
 
 [![Python](https://img.shields.io/badge/Python-3.14-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
@@ -8,86 +6,92 @@
 [![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Grafana](https://img.shields.io/badge/Grafana-Observability-F46800?style=for-the-badge&logo=grafana&logoColor=white)](https://grafana.com/)
 
-**Современный аниме-каталог с русскоязычным интерфейсом, интеллектуальным поиском через Shikimori GraphQL API и полноценным production-grade стеком мониторинга (Prometheus + Grafana + Loki + Grafana Alloy).**
-
-</div>
-
----
+**Современный аниме-каталог с русскоязычным интерфейсом, интеллектуальным поиском через Shikimori GraphQL API, админ-панелью для «Аниме недели» и production-grade стеком мониторинга (Prometheus + Grafana + Loki + Grafana Alloy).**
 
 ## 📌 О проекте
 
-**Yume-Anime** — это веб-приложение для поиска и просмотра каталога аниме. Проект спроектирован по принципам микросервисной архитектуры в Docker, разделен на статический frontend, мощный бэкенд на FastAPI, реляционную базу данных PostgreSQL и изолированный контур наблюдаемости (Observability).
+**Yume-Anime** — это веб-приложение для поиска и просмотра каталога аниме, спроектированное по микросервисной архитектуре в Docker. Особенность проекта — комбинированный поиск **Local-First + External-Sync**: система мгновенно выдаёт результаты из локальной базы PostgreSQL и параллельно обращается к внешнему GraphQL API Shikimori (`https://shikimori.io/api/graphql`) для синхронизации новых тайтлов и скачивания постеров.
 
-Особенность проекта — комбинированный **Local-First + External-Sync** поиск: система мгновенно выдает результаты из локальной базы PostgreSQL, параллельно обращаясь к внешнему GraphQL API Shikimori для обогащения данных, скачивания постеров и синхронизации новых тайтлов.
+### Ключевые принципы
+- **Быстрый деплой:** запуск всего стека за несколько минут через `docker compose`.
+- **Наблюдаемость (Observability):** сбор метрик в Prometheus и централизованный сбор Docker-логов через Grafana Alloy и Loki с визуализацией в Grafana.
+- **Безопасность по умолчанию:** изоляция контейнеров в трёх Docker-сетях, проброс служебных портов только на `127.0.0.1`, защита админ-панели подписанными `HttpOnly` cookie, CSRF-проверкой и безопасным рендерингом DOM через `textContent`.
 
+![alt text](Documentation/Yume-Anime_Architecture_Easy.svg)
 
 ![alt text](photo_to_gitlab/image.png)
-
----
 
 ## 🚀 Архитектурный стек
 
 | Компонент | Технология | Назначение |
 | :--- | :--- | :--- |
-| **Frontend** | HTML5, CSS3 Grid, Vanilla JS | Адаптивный пользовательский интерфейс, SPA-роутинг |
-| **Backend** | FastAPI (Python 3.14), `psycopg`, `httpx` | REST API, логика поиска, интеграция с Shikimori |
-| **Database** | PostgreSQL 18.6 | Хранение метаданных аниме и путей к локальным постерам |
-| **Admin UI** | Adminer | Удобное веб-управление базой данных |
-| **Web Server** | Nginx | Раздача статики, Reverse Proxy для `/api/` |
-| **Metrics** | Prometheus & FastAPI Instrumentator | Сбор и хранение метрик производительности (RPS, Latency) |
-| **Logs** | Grafana Alloy & Loki | Безагентный сбор Docker-логов (Alloy) и их централизованное хранение (Loki) |
-| **Dashboards**| Grafana | Визуализация метрик и логов в реальном времени |
-
----
+| **Frontend** | HTML5, CSS3 Grid, Tailwind CSS, Vanilla JS | Пользовательский интерфейс и админ-панель (`admin.html`) |
+| **Backend** | FastAPI (Python 3.14), `psycopg`, `httpx`, `Pillow`, `itsdangerous` | REST API, поиск, обработка баннеров WebP, авторизация |
+| **Database** | PostgreSQL 18.6 | Автоматически создается база данных с таблицами `anime_list` и `anime_of_the_week`, описанных в файле db/init.sql |
+| **Admin DB UI** | Adminer | Веб-управление базой данных |
+| **Web Server** | Nginx | Раздача статики, `/anime_photo/` и Reverse Proxy для `/api/` |
+| **Metrics** | Prometheus & FastAPI Instrumentator | Сбор метрик производительности (RPS, Latency, ошибки) |
+| **Logs** | Grafana Alloy & Loki | Сбор Docker-логов через `/var/run/docker.sock` и хранение в Loki |
+| **Dashboards** | Grafana | Визуализация метрик и логов в реальном времени |
 
 ## 🏗️ Структура репозитория
 
 ```text
-├── anime_photo/                # Локальное хранилище постеров (разделено с Nginx и Backend)
+├── anime_photo/                  # Локальное хранилище постеров и баннеров (week/)
 ├── db/
-│   └── init.sql                # SQL-скрипт инициализации таблицы anime_list
+│   └── init.sql                  # Инициализация таблиц anime_list и anime_of_the_week
 ├── DockerFiles/
 │   └── Dockerfile_python_backend # Dockerfile для сборки FastAPI-сервиса
-├── env_examples/               # Шаблоны конфигурационных файлов (.env)
+├── env_examples/                 # Шаблоны файлов окружения (.env)
 ├── monitoring/
-│   ├── alloy-config.alloy      # Конфигурация Grafana Alloy (сбор логов из Docker)
-│   ├── loki-config.yaml        # Конфигурация Loki (хранение логов 7 дней)
+│   ├── alloy-config.alloy        # Конфигурация Grafana Alloy (сбор логов из Docker)
+│   ├── loki-config.yaml          # Конфигурация Loki (хранение логов)
 │   └── prometheus/
-│       └── prometheus.yml      # Scrape-конфигурация Prometheus
+│       └── prometheus.yml        # Scrape-конфигурация Prometheus
 ├── nginx/
-│   ├── data/                   # Frontend-файлы (HTML, CSS, ассеты, фоны)
-│   └── nginx_configuration/    # Конфиги Nginx (default.conf)
+│   ├── data/                     # Frontend (index.html, anime_description.html, admin.html)
+│   └── nginx_configuration/      # Конфиги Nginx
 ├── python/
-│   ├── main.py                 # Основное FastAPI-приложение и эндпоинты
-│   ├── shikimori.py            # Асинхронный GraphQL-клиент Shikimori
-│   └── images.py               # Модуль параллельной загрузки постеров (.part -> rename)
-└── docker-compose.yml          # Главный манифест оркестрации контейнеров
-
+│   ├── main.py                   # Основное FastAPI-приложение и API-эндпоинты
+│   ├── shikimori.py              # Асинхронный GraphQL-клиент Shikimori
+│   └── images.py                 # Параллельная загрузка постеров (.part -> rename)
+└── docker-compose.yml            # Оркестрация всех контейнеров
 ```
 
 ## 🌐 Схема взаимодействия сетей
 
-Проект изолирован в трех Docker bridge-сетях для максимальной безопасности:
+Проект изолирован в трёх Docker bridge-сетях:
+1. **`frontend_net`** — связывает `nginx` и `api`.
+2. **`backend_net`** — изолирует `api`, `postgre_sql` и `adminer_sql`.
+3. **`monitor_net`** — объединяет `nginx`, `api`, `prometheus`, `grafana`, `alloy` и `loki`.
 
-1. **`frontend_net`**: Связывает Nginx и FastAPI Backend.
-2. **`backend_net`**: Изолирует FastAPI Backend, PostgreSQL и Adminer.
-3. **`monitor_net`**: Объединяет сервисы мониторинга (Prometheus, Grafana, Alloy, Loki).
+Общая директория `./anime_photo` примонтирована одновременно в `nginx` (`/usr/share/nginx/html/anime_photo/`) и в `api` (`/code/app/anime_photo`).
 
----
+## ⭐ Админ-панель и «Аниме недели»
+
+Для управления подборкой «Аниме недели» (до 3 слотов на каждую неделю, начиная с понедельника) реализована защищённая страница `nginx/data/admin.html`:
+- **Авторизация и защита:** вход по паролю (`POST /api/admin/login`) с выдачей подписанной cookie `admin_session` (`HttpOnly`, `Secure`, `SameSite=Strict`), проверка заголовка `X-Requested-With: admin-ui` от CSRF-атак и вставка всех данных в DOM строго через `textContent`.
+- **Управление слотами:** таблица активных и запланированных недель (`GET /api/admin/anime-of-the-week`), переключение публикации (`PATCH`), удаление слота вместе с `.webp`-файлом (`DELETE`) и подтверждение перезаписи занятого слота.
+- **Форма добавления и кроппер 16:9:** поиск аниме по `/api/search/local`, автовыравнивание даты на понедельник, слоган `5–40` символов и встроенный онлайн-редактор обрезки, который автоматически открывается для любых фото, не совпадающих со стандартами 16:9 Full HD, 2K или 4K.
+- **Архив и история замен:** в таблице `anime_of_the_week` (`db/init.sql`) используются поля `is_archived`, `archived_at` и частичные уникальные индексы (`WHERE is_archived = FALSE`). При перезаписи слота старое аниме уходит в архив с сохранением уникального файла `{week_start}-{position}-{uuid}.webp`, а во вкладке архива отображаются статусы **«архив»**, **«текущее»** и **«запланировано»**.
 
 ## ⚙️ Быстрый старт и развертывание
 
 ### 1. Подготовка окружения
 
-Перед запуском контейнеров необходимо создать папку `env` в корне проекта и скопировать туда файлы конфигурации из `env_examples/`:
+Создайте папку `env` в корне проекта и скопируйте шаблоны из `env_examples/`:
 
 ```bash
 mkdir -p env
 cp env_examples/.env.api.example env/.env.api
 cp env_examples/.env.db.example env/.env.db
 cp env_examples/.env.grafana.example env/.env.grafana
+```
 
-> ⚠️ **Важно:** Убедитесь, что переменная `DB_PASSWORD` в `.env.api` совпадает с `POSTGRES_PASSWORD` в `.env.db`. В файле `.env.grafana` используйте стандартный формат `KEY=VALUE` без ведущих дефисов.
+> ⚠️ **Важно:**
+> - Переменная `DB_PASSWORD` в `env/.env.api` должна совпадать с `POSTGRES_PASSWORD` в `env/.env.db`.
+> - Для работы админ-панели в `env/.env.api` задайте `ADMIN_PASSWORD` и `ADMIN_SECRET_KEY`. При локальном запуске по HTTP без HTTPS установите `COOKIE_SECURE=0`.
+> - В `env/.env.grafana` используйте стандартный формат `KEY=VALUE` без ведущих дефисов.
 
 ### 2. Запуск проекта
 
@@ -95,77 +99,63 @@ cp env_examples/.env.grafana.example env/.env.grafana
 
 ```bash
 docker compose up -d --build
-
 ```
 
----
+## 🔍 API-контракты
 
-## 📊 Доступные сервисы
+### Публичные эндпоинты
+- `GET /api/random` — возвращает до 6 случайных аниме из локальной базы.
+- `GET /api/search/local?q=<query>` — мгновенный локальный поиск по `name`, `russian`, `japanese` (`ILIKE`).
+- `GET /api/search/sync?q=<query>` — локальный поиск + GraphQL-запрос к Shikimori + параллельное скачивание постеров + `UPSERT` в PostgreSQL.
+- `GET /api/anime/{anime_id}` — детальная информация по внутреннему ID аниме.
+- `GET /api/anime-of-the-week` — до 3 опубликованных и неархивных слотов последней начавшейся недели.
+- `GET /api/anime-of-the-week/archive?year=&shikimori_id=` — архив «Аниме недели» с опциональными фильтрами.
+- `GET /metrics` — метрики Prometheus.
 
-После успешного запуска вам будут доступны следующие веб-интерфейсы:
+### Админские эндпоинты (требуют `admin_session` cookie и `X-Requested-With: admin-ui` для мутаций)
+- `POST /api/admin/login` — вход по паролю (`FormData: password`).
+- `POST /api/admin/logout` — выход и удаление cookie сессии.
+- `GET /api/admin/anime-of-the-week` — список неархивных слотов (включая скрытые и будущие недели).
+- `POST /api/admin/anime-of-the-week` — добавление слота (с архивацией предыдущего активного слота и конвертацией арта в `1920×1080` WebP).
+- `PATCH /api/admin/anime-of-the-week/{item_id}` — переключение видимости (`FormData: is_published`).
+- `DELETE /api/admin/anime-of-the-week/{item_id}` — удаление записи и баннера с диска.
 
-* 🌐 **Веб-сайт (Yume-Anime):** [http://localhost](http://localhost)
+## 🔌 Порты и подключение
 
+Наружу на все интерфейсы публикуется только порт **Nginx (`80:80`)**. Все служебные интерфейсы привязаны к **`127.0.0.1`** и доступны через SSH-туннель.
 
-* 🗄️ **Adminer (База данных):** [http://localhost:8051](http://localhost:8051) *(Сервер: `postgre_sql`)*
+| Сервис | Контейнер | Проброс портов | Доступ | Назначение |
+| :--- | :--- | :--- | :--- | :--- |
+| **Nginx** | `nginx_anime_container` | `80:80` | Напрямую (`http://<IP_сервера>`) | Сайт, админка `/admin.html`, `/anime_photo/`, прокси `/api/` |
+| **Adminer** | `adminer_container` | `127.0.0.1:8080:8080` | SSH-туннель (`http://localhost:8080`) | Веб-интерфейс управления PostgreSQL (сервер: `postgre_sql`) |
+| **Grafana** | `grafana` | `127.0.0.1:3000:3000` | SSH-туннель (`http://localhost:3000`) | Дашборды метрик и логов |
+| **Prometheus** | `prometheus` | `127.0.0.1:9090:9090` | SSH-туннель (`http://localhost:9090`) | Сбор и просмотр метрик |
+| **Grafana Alloy** | `alloy` | `127.0.0.1:12345:12345` | SSH-туннель (`http://localhost:12345`) | Статус и отладка сборщика логов |
+| **Loki** | `loki` | `127.0.0.1:3100:3100` | SSH-туннель (`http://localhost:3100`) | API хранилища логов |
+| **FastAPI (`api`)** | `api_backend_container` | Внутренний (`8000`) | Только внутри Docker-сетей | Бэкенд-сервис и `/metrics` |
+| **PostgreSQL** | `postgre_sql_container` | Внутренний (`5432`) | Только внутри `backend_net` | База данных |
 
+### 🔐 Подключение к закрытым сервисам через SSH-туннель
 
-* 📈 **Grafana (Дашборды и логи):** [http://localhost:3000](http://localhost:3000) *(Логин/Пароль из `.env.grafana`)*
+```bash
+# Подключение к Grafana и Adminer
+ssh -L 3000:localhost:3000 -L 8080:localhost:8080 <user>@<IP_сервера>
 
-
-* 🔭 **Prometheus (Метрики):** [http://localhost:9090](http://localhost:9090)
-
-
-* 🧩 **Grafana Alloy (Инспекция сборщика):** [http://localhost:12345](http://localhost:12345)
-
-
-
----
-
-## 🔍 API-Контракты
-
-* `GET /api/random` — Возвращает до 6 случайных аниме из локальной базы (`ORDER BY RANDOM()`).
-
-
-* `GET /api/search/local?q=<query>` — Мгновенный локальный поиск по полям `name`, `russian`, `japanese` с использованием `ILIKE`.
-
-
-* `GET /api/search/sync?q=<query>` — Синхронный поиск: локальный поиск $\rightarrow$ GraphQL-запрос к Shikimori $\rightarrow$ параллельное скачивание постеров $\rightarrow$ `UPSERT` в PostgreSQL $\rightarrow$ возврат общего результата.
-
-
-* `GET /api/anime/{id}` — Получение детальной информации по внутреннему ID аниме.
-
-
-* `GET /metrics` — Эндпоинт для сбора метрик Prometheus (инструментирован через `prometheus-fastapi-instrumentator`).
-
-
-
----
+# Проброс всех основных портов мониторинга и БД сразу
+ssh -L 3000:localhost:3000 -L 8080:localhost:8080 -L 9090:localhost:9090 -L 12345:localhost:12345 -L 3100:localhost:3100 <user>@<IP_сервера>
+```
 
 ## 🛠️ Планы по развитию (Roadmap)
 
-* [ ] Реализация полноценной страницы деталей тайтла (жанры, студии, статус, рейтинг).
-
-
-* [ ] Переход на полноценный шаблон Cache-Aside с TTL для внешних запросов к Shikimori.
-
-
-* [ ] Добавление пользовательских аккаунтов, системы избранного и истории просмотров.
-
-
-* [ ] Интеграция онлайн-плеера и каталога источников видео.
-
-
-* [ ] Полная автоматизация импорта JSON-дашбордов Grafana через механизм provisioning.
-
-
-
----
+- [ ] Настройка CI/CD-пайплайна для автоматического тестирования и деплоя.
+- [ ] Расширение страницы деталей тайтла (жанры, студии, статус, рейтинг).
+- [ ] Переход на шаблон Cache-Aside с TTL для внешних запросов к Shikimori.
+- [ ] Добавление пользовательских аккаунтов, избранного и истории просмотров.
+- [ ] Интеграция онлайн-плеера и каталога источников видео.
+- [ ] Автоматизация импорта JSON-дашбордов Grafana через provisioning.
 
 ## 📝 Лицензия
 
 Проект распространяется под лицензией MIT. Подробности смотрите в файле `LICENSE`.
 
-
 С любовью от **Vmsk_Wivi** 🌸
-=======

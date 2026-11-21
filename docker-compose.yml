@@ -53,7 +53,7 @@ services:
     container_name: "adminer_container"
     restart: unless-stopped
     ports:
-      - 8051:8080
+      - "127.0.0.1:8080:8080"
     networks:
       - backend_net
 
@@ -70,7 +70,7 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     networks:
       - monitor_net
 
@@ -87,7 +87,7 @@ services:
       - path: ./env/.env.grafana
         required: true
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     networks:
       - monitor_net
 
@@ -100,7 +100,7 @@ services:
       - ./monitoring/alloy-config.alloy:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
-      - "12345:12345"
+      - "127.0.0.1:12345:12345"
     networks:
       - monitor_net
 
@@ -109,7 +109,7 @@ services:
     container_name: loki
     restart: unless-stopped
     ports:
-      - "3100:3100"
+      - "127.0.0.1:3100:3100"
     volumes:
       - ./monitoring/loki-config.yaml:/etc/loki/local-config.yaml
       - loki_data:/loki

@@ -1,0 +1,197 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" agent="Yume-Anime Architecture Generator" version="24.7.17" type="device">
+  <diagram id="yume-anime-arch" name="Yume-Anime Architecture">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="1680" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="box_2" value="&lt;b&gt;Yume-Anime — Актуальная архитектура (по коду ветки aezi_branch_2)&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;color:#475569'&gt;Docker Compose: 8 контейнеров • 3 изолированные bridge-сети (frontend_net, backend_net, monitor_net) • FastAPI + PostgreSQL 18.6 + Nginx + Prometheus/Grafana/Alloy/Loki&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=15;fillColor=#EEF2FF;strokeColor=#4F46E5;fontColor=#1E1B4B;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="2320" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="box_3" value="&lt;b&gt;Пользователь (Браузер)&lt;/b&gt;&lt;br&gt;• http://&amp;lt;host&amp;gt;:80&lt;br&gt;• Публичные страницы: index.html, anime_description.html&lt;br&gt;• Админка: kamisama.html (cookie admin_session + X-Requested-With: admin-ui)" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=11;fillColor=#ECFDF5;strokeColor=#059669;fontColor=#064E3B;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="105" width="470" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="box_4" value="&lt;b&gt;Администратор / DevOps (SSH-туннель на 127.0.0.1)&lt;/b&gt;&lt;br&gt;• Adminer: localhost:8080 (в README/Doc ошибочно 8051)&lt;br&gt;• Grafana: localhost:3000 • Prometheus: localhost:9090&lt;br&gt;• Alloy UI: localhost:12345 • Loki API: localhost:3100" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=11;fillColor=#FFF7ED;strokeColor=#EA580C;fontColor=#7C2D12;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="105" width="520" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="box_5" value="&lt;b&gt;Внешний сервис: Shikimori API &amp;amp; CDN&lt;/b&gt;&lt;br&gt;• POST https://shikimori.io/api/graphql&lt;br&gt;• Header: User-Agent: Yume-anime&lt;br&gt;• Query: animes(search, limit: 3, kind: &quot;!special&quot;)&lt;br&gt;• Скачивание постеров (originalUrl, mainUrl)" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=11;fillColor=#FDF2F8;strokeColor=#DB2777;fontColor=#831843;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="1760" y="105" width="600" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="grp_6" value="Сеть: frontend_net (bridge) — Nginx ↔ FastAPI" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontStyle=1;fontSize=13;fillColor=#F0F9FF;strokeColor=#0284C7;fontColor=#0C4A6E;strokeWidth=2;container=1;collapsible=0;dashed=1;dashPattern=6 4;" vertex="1" parent="1">
+          <mxGeometry x="40" y="250" width="500" height="650" as="geometry" />
+        </mxCell>
+        <mxCell id="box_7" value="&lt;b&gt;nginx_anime_container&lt;/b&gt; (сервис: nginx)&lt;br&gt;&lt;i&gt;image: nginx:1.31.8-trixie | ports: 80:80&lt;/i&gt;&lt;br&gt;&lt;i&gt;networks: frontend_net, monitor_net&lt;/i&gt;&lt;br&gt;&lt;b&gt;Маршрутизация (default.conf):&lt;/b&gt;&lt;br&gt;• &lt;b&gt;GET /&lt;/b&gt; → /usr/share/nginx/html (try_files $uri $uri/ /index.html)&lt;br&gt;  - index.html (каталог, поиск, Аниме недели)&lt;br&gt;  - anime_description.html?id=...&lt;br&gt;  - kamisama.html (веб-админка)&lt;br&gt;• &lt;b&gt;GET /anime_photo/&lt;/b&gt; → /usr/share/nginx/html/anime_photo/&lt;br&gt;• &lt;b&gt;/api/*&lt;/b&gt; → proxy_pass http://api:8000&lt;br&gt;  (X-Real-IP, X-Forwarded-For, X-Forwarded-Proto, Host)" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=11;fillColor=#FFFFFF;strokeColor=#0284C7;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_6">
+          <mxGeometry x="20" y="45" width="460" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="box_8" value="&lt;b&gt;Frontend-логика (HTML + Vanilla JS в nginx/data)&lt;/b&gt;&lt;br&gt;• &lt;b&gt;index.html&lt;/b&gt;: /api/anime-of-the-week, /api/random,&lt;br&gt;  последовательный поиск /api/search/local → /api/search/sync&lt;br&gt;• &lt;b&gt;anime_description.html&lt;/b&gt;: GET /api/anime/{id}&lt;br&gt;• &lt;b&gt;kamisama.html&lt;/b&gt;: /api/admin/login, /logout,&lt;br&gt;  /api/admin/anime-of-the-week (GET/POST/PATCH/DELETE),&lt;br&gt;  /api/anime-of-the-week/archive, /api/search/local&lt;br&gt;• Защита от XSS: escapeHtml() при рендере карточек" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=11;fillColor=#E0F2FE;strokeColor=#0369A1;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_6">
+          <mxGeometry x="20" y="320" width="460" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="grp_9" value="Сеть: backend_net (bridge) — FastAPI ↔ PostgreSQL ↔ Adminer" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontStyle=1;fontSize=13;fillColor=#F5F3FF;strokeColor=#7C3AED;fontColor=#4C1D95;strokeWidth=2;container=1;collapsible=0;dashed=1;dashPattern=6 4;" vertex="1" parent="1">
+          <mxGeometry x="570" y="250" width="910" height="900" as="geometry" />
+        </mxCell>
+        <mxCell id="grp_10" value="api_backend_container (сервис: api) | python:3.14 + FastAPI :8000 | networks: frontend_net, backend_net, monitor_net" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontStyle=1;fontSize=13;fillColor=#FFFFFF;strokeColor=#6D28D9;fontColor=#4C1D95;strokeWidth=2;container=1;collapsible=0;" vertex="1" parent="grp_9">
+          <mxGeometry x="20" y="40" width="870" height="470" as="geometry" />
+        </mxCell>
+        <mxCell id="box_11" value="&lt;b&gt;main.py — Публичные API-эндпоинты&lt;/b&gt;&lt;br&gt;• &lt;b&gt;GET /api/random&lt;/b&gt; — до 6 случайных записей (ORDER BY RANDOM())&lt;br&gt;• &lt;b&gt;GET /api/search/local?q=&lt;/b&gt; — ILIKE по name, russian, japanese (LIMIT 50)&lt;br&gt;• &lt;b&gt;GET /api/search/sync?q=&lt;/b&gt; — local → Shikimori GraphQL →&lt;br&gt;  скачивание постеров → INSERT/ON CONFLICT → объединённый список&lt;br&gt;• &lt;b&gt;GET /api/anime/{id}&lt;/b&gt; — карточка по внутреннему id (404 если нет)&lt;br&gt;• &lt;b&gt;GET /api/anime-of-the-week&lt;/b&gt; — до 3 слотов текущей недели (is_published)&lt;br&gt;• &lt;b&gt;GET /api/anime-of-the-week/archive&lt;/b&gt; — фильтр ?year= &amp;amp; ?shikimori_id=&lt;br&gt;• &lt;b&gt;GET /metrics&lt;/b&gt; (prometheus_fastapi_instrumentator) | &lt;b&gt;/anime_photo&lt;/b&gt; (StaticFiles)" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=10.5;fillColor=#FAF5FF;strokeColor=#7C3AED;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_10">
+          <mxGeometry x="15" y="40" width="445" height="225" as="geometry" />
+        </mxCell>
+        <mxCell id="box_12" value="&lt;b&gt;main.py — Админка (require_admin)&lt;/b&gt;&lt;br&gt;• Cookie &lt;i&gt;admin_session&lt;/i&gt; (itsdangerous, TTL 2ч, HttpOnly, SameSite=strict)&lt;br&gt;• CSRF-проверка: заголовок &lt;i&gt;X-Requested-With: admin-ui&lt;/i&gt;&lt;br&gt;• &lt;b&gt;POST /api/admin/login&lt;/b&gt; &amp;amp; &lt;b&gt;POST /api/admin/logout&lt;/b&gt;&lt;br&gt;• &lt;b&gt;GET /api/admin/anime-of-the-week&lt;/b&gt; (все слоты, до 100)&lt;br&gt;• &lt;b&gt;POST /api/admin/anime-of-the-week&lt;/b&gt;: валидация понедельника,&lt;br&gt;  слогана (15–20 симв.), Pillow (16:9, ≥1280px, ≤10МБ, ≤40Mpx)&lt;br&gt;  → конвертация в 1920×1080 .webp → запись в БД → rename .part&lt;br&gt;• &lt;b&gt;PATCH / DELETE /api/admin/anime-of-the-week/{id}&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=10.5;fillColor=#FEF2F2;strokeColor=#DC2626;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_10">
+          <mxGeometry x="475" y="40" width="380" height="225" as="geometry" />
+        </mxCell>
+        <mxCell id="box_13" value="&lt;b&gt;python/shikimori.py&lt;/b&gt;&lt;br&gt;• Асинхронный GraphQL-клиент&lt;br&gt;• &lt;i&gt;fetch_anime_from_shikimori(q)&lt;/i&gt;&lt;br&gt;• httpx.AsyncClient → shikimori.io/api/graphql" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=10.5;fillColor=#FDF2F8;strokeColor=#DB2777;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_10">
+          <mxGeometry x="15" y="285" width="270" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="box_14" value="&lt;b&gt;python/images.py&lt;/b&gt;&lt;br&gt;• &lt;i&gt;download_anime_images()&lt;/i&gt; (asyncio.gather)&lt;br&gt;• Параллельная загрузка originalUrl + mainUrl&lt;br&gt;• Атомарная запись: .part → rename&lt;br&gt;• Fallback на внешний URL при ошибке" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=10.5;fillColor=#EFF6FF;strokeColor=#2563EB;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_10">
+          <mxGeometry x="300" y="285" width="285" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="box_15" value="&lt;b&gt;Подключение к БД (psycopg3)&lt;/b&gt;&lt;br&gt;• &lt;i&gt;get_conn()&lt;/i&gt; — новое соединение на запрос&lt;br&gt;  (без connection pool), host=postgre_sql:5432&lt;br&gt;• Блокирующие вызовы в async-роутах&lt;br&gt;  вынесены в &lt;i&gt;asyncio.to_thread()&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=10.5;fillColor=#ECFDF5;strokeColor=#059669;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_10">
+          <mxGeometry x="600" y="285" width="255" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="grp_16" value="postgre_sql_container (сервис: postgre_sql) | postgres:18.6-trixie | port 5432 (internal) | network: backend_net" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontStyle=1;fontSize=13;fillColor=#ECFDF5;strokeColor=#059669;fontColor=#064E3B;strokeWidth=2;container=1;collapsible=0;" vertex="1" parent="grp_9">
+          <mxGeometry x="20" y="535" width="620" height="345" as="geometry" />
+        </mxCell>
+        <mxCell id="box_17" value="&lt;b&gt;Таблица: anime_list&lt;/b&gt;&lt;br&gt;• &lt;b&gt;id&lt;/b&gt; SERIAL PK&lt;br&gt;• &lt;b&gt;shikimori_id&lt;/b&gt; VARCHAR(50) UNIQUE NOT NULL&lt;br&gt;• &lt;b&gt;name&lt;/b&gt; VARCHAR(255) NOT NULL&lt;br&gt;• &lt;b&gt;russian&lt;/b&gt;, &lt;b&gt;japanese&lt;/b&gt; VARCHAR(255)&lt;br&gt;• &lt;b&gt;date&lt;/b&gt; DATE&lt;br&gt;• &lt;b&gt;originalurl&lt;/b&gt;, &lt;b&gt;mainurl&lt;/b&gt; TEXT (путь или URL)&lt;br&gt;• &lt;b&gt;description&lt;/b&gt; TEXT" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=10.5;fillColor=#FFFFFF;strokeColor=#047857;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_16">
+          <mxGeometry x="15" y="45" width="275" height="215" as="geometry" />
+        </mxCell>
+        <mxCell id="box_18" value="&lt;b&gt;Таблица: anime_of_the_week&lt;/b&gt;&lt;br&gt;• &lt;b&gt;id&lt;/b&gt; SERIAL PK&lt;br&gt;• &lt;b&gt;anime_id&lt;/b&gt; INT FK → anime_list(id) ON DELETE CASCADE&lt;br&gt;• &lt;b&gt;week_start&lt;/b&gt; DATE CHECK (ISODOW = 1)&lt;br&gt;• &lt;b&gt;position&lt;/b&gt; SMALLINT CHECK (1..3)&lt;br&gt;• &lt;b&gt;banner_path&lt;/b&gt; TEXT NOT NULL&lt;br&gt;• &lt;b&gt;tagline&lt;/b&gt; VARCHAR(40) CHECK (5..30) &lt;i&gt;[API: 15..20]&lt;/i&gt;&lt;br&gt;• &lt;b&gt;is_published&lt;/b&gt; BOOLEAN DEFAULT TRUE&lt;br&gt;• &lt;b&gt;created_at&lt;/b&gt; TIMESTAMPTZ DEFAULT NOW()&lt;br&gt;• UNIQUE(week_start, position), UNIQUE(week_start, anime_id)&lt;br&gt;• INDEX idx_aotw_anime_id(anime_id)" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=10.5;fillColor=#FFFFFF;strokeColor=#047857;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_16">
+          <mxGeometry x="305" y="45" width="300" height="275" as="geometry" />
+        </mxCell>
+        <mxCell id="box_19" value="&lt;b&gt;adminer_container&lt;/b&gt;&lt;br&gt;(сервис: adminer_sql)&lt;br&gt;&lt;i&gt;image: adminer:6&lt;/i&gt;&lt;br&gt;&lt;i&gt;ports: 127.0.0.1:8080:8080&lt;/i&gt;&lt;br&gt;&lt;i&gt;network: backend_net&lt;/i&gt;&lt;br&gt;&lt;br&gt;Веб-UI для управления БД&lt;br&gt;(Сервер: &lt;b&gt;postgre_sql&lt;/b&gt;)" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=11;fillColor=#FEF3C7;strokeColor=#D97706;fontColor=#78350F;strokeWidth=1.5;" vertex="1" parent="grp_9">
+          <mxGeometry x="665" y="535" width="225" height="195" as="geometry" />
+        </mxCell>
+        <mxCell id="grp_20" value="Сеть: monitor_net (bridge) — Наблюдаемость (Prometheus + Grafana + Alloy + Loki)" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontStyle=1;fontSize=13;fillColor=#FFFBEB;strokeColor=#D97706;fontColor=#78350F;strokeWidth=2;container=1;collapsible=0;dashed=1;dashPattern=6 4;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="250" width="850" height="900" as="geometry" />
+        </mxCell>
+        <mxCell id="box_21" value="&lt;b&gt;prometheus&lt;/b&gt;&lt;br&gt;&lt;i&gt;image: prom/prometheus:v3.16.0-busybox&lt;/i&gt;&lt;br&gt;&lt;i&gt;ports: 127.0.0.1:9090:9090&lt;/i&gt;&lt;br&gt;• scrape_interval: 10s&lt;br&gt;• job_name: api_fastapi&lt;br&gt;• target: http://api:8000/metrics&lt;br&gt;• TSDB: /prometheus" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=11;fillColor=#FFFFFF;strokeColor=#EA580C;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_20">
+          <mxGeometry x="30" y="55" width="370" height="165" as="geometry" />
+        </mxCell>
+        <mxCell id="box_22" value="&lt;b&gt;grafana&lt;/b&gt;&lt;br&gt;&lt;i&gt;image: grafana/grafana:13.2-slim&lt;/i&gt;&lt;br&gt;&lt;i&gt;ports: 127.0.0.1:3000:3000&lt;/i&gt;&lt;br&gt;• Provisioning: datasources.yaml&lt;br&gt;  - Prometheus (http://prometheus:9090, default)&lt;br&gt;  - Loki (http://loki:3100)&lt;br&gt;• fastapi-dashboard.json в Compose закомментирован" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=11;fillColor=#FFFFFF;strokeColor=#F59E0B;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_20">
+          <mxGeometry x="445" y="55" width="375" height="165" as="geometry" />
+        </mxCell>
+        <mxCell id="box_23" value="&lt;b&gt;alloy (Grafana Alloy)&lt;/b&gt;&lt;br&gt;&lt;i&gt;image: grafana/alloy:v1.21.3&lt;/i&gt;&lt;br&gt;&lt;i&gt;ports: 127.0.0.1:12345:12345&lt;/i&gt;&lt;br&gt;• discovery.docker по /var/run/docker.sock:ro&lt;br&gt;• Relabel: метки &lt;i&gt;container&lt;/i&gt; и &lt;i&gt;stream&lt;/i&gt; (job=docker)&lt;br&gt;• loki.source.docker → loki.write" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=11;fillColor=#FFFFFF;strokeColor=#D97706;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_20">
+          <mxGeometry x="30" y="310" width="370" height="165" as="geometry" />
+        </mxCell>
+        <mxCell id="box_24" value="&lt;b&gt;loki&lt;/b&gt;&lt;br&gt;&lt;i&gt;image: grafana/loki:3.6.20&lt;/i&gt;&lt;br&gt;&lt;i&gt;ports: 127.0.0.1:3100:3100&lt;/i&gt;&lt;br&gt;• Приём: POST /loki/api/v1/push&lt;br&gt;• Хранилище: filesystem (/loki), schema v13 (tsdb)&lt;br&gt;• Retention: 168h (7 дней), replication_factor: 1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=11;fillColor=#FFFFFF;strokeColor=#B45309;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_20">
+          <mxGeometry x="445" y="310" width="375" height="165" as="geometry" />
+        </mxCell>
+        <mxCell id="box_25" value="&lt;b&gt;Host Docker Socket&lt;/b&gt;&lt;br&gt;/var/run/docker.sock (ro)&lt;br&gt;Логи stdout/stderr всех контейнеров&lt;br&gt;(включая uvicorn.error из API и логи Nginx/PG)" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=11;fillColor=#F1F5F9;strokeColor=#475569;fontColor=#0F172A;strokeWidth=1.5;dashed=1;dashPattern=4 3;" vertex="1" parent="grp_20">
+          <mxGeometry x="30" y="560" width="370" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="grp_26" value="Хранилища хоста (Bind Mounts и Docker Named Volumes)" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontStyle=1;fontSize=13;fillColor=#F8FAFC;strokeColor=#475569;fontColor=#0F172A;strokeWidth=2;container=1;collapsible=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1200" width="2320" height="360" as="geometry" />
+        </mxCell>
+        <mxCell id="box_27" value="&lt;b&gt;Bind Mounts: Nginx&lt;/b&gt;&lt;br&gt;• ./nginx/data → /usr/share/nginx/html&lt;br&gt;• ./nginx/nginx_configuration → /etc/nginx/conf.d/" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=11;fillColor=#E0F2FE;strokeColor=#0284C7;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_26">
+          <mxGeometry x="25" y="50" width="360" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="box_28" value="&lt;b&gt;Общий Bind Mount: ./anime_photo&lt;/b&gt;&lt;br&gt;• В Nginx: /usr/share/nginx/html/anime_photo/&lt;br&gt;• В API: /code/app/anime_photo&lt;br&gt;• Папки: mainurl_folder/, originalurl_folder/, week/" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=11;fillColor=#DBEAFE;strokeColor=#1D4ED8;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_26">
+          <mxGeometry x="25" y="180" width="360" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="box_29" value="&lt;b&gt;Bind Mounts: Python, DB, Env&lt;/b&gt;&lt;br&gt;• ./python → /code/app (live-код без пересборки)&lt;br&gt;• ./db → /docker-entrypoint-initdb.d/:ro (init.sql)&lt;br&gt;• ./env/.env.{api,db,grafana} (required: true)" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=11;fillColor=#EDE9FE;strokeColor=#6D28D9;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_26">
+          <mxGeometry x="420" y="50" width="390" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="box_30" value="&lt;b&gt;Named Volume: Postgre_data&lt;/b&gt;&lt;br&gt;(db_storage_volume)&lt;br&gt;→ /var/lib/postgresql" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=14;align=center;verticalAlign=middle;spacingLeft=8;spacingRight=8;spacingTop=6;fontSize=11;fillColor=#D1FAE5;strokeColor=#059669;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_26">
+          <mxGeometry x="850" y="50" width="290" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="box_31" value="&lt;b&gt;Bind Mounts: Monitoring Configs&lt;/b&gt;&lt;br&gt;• ./monitoring/prometheus/prometheus.yml&lt;br&gt;• ./monitoring/alloy-config.alloy&lt;br&gt;• ./monitoring/loki-config.yaml&lt;br&gt;• ./monitoring/grafana/datasources.yaml" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=11;fillColor=#FEF3C7;strokeColor=#D97706;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_26">
+          <mxGeometry x="1180" y="50" width="360" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="box_32" value="&lt;b&gt;Named Volume: prometheus_data&lt;/b&gt;&lt;br&gt;(prometheus_volume)&lt;br&gt;→ /prometheus" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=14;align=center;verticalAlign=middle;spacingLeft=8;spacingRight=8;spacingTop=6;fontSize=11;fillColor=#FFEDD5;strokeColor=#EA580C;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_26">
+          <mxGeometry x="1580" y="50" width="230" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="box_33" value="&lt;b&gt;Named Volume: grafana_data&lt;/b&gt;&lt;br&gt;(grafana_volume)&lt;br&gt;→ /var/lib/grafana" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=14;align=center;verticalAlign=middle;spacingLeft=8;spacingRight=8;spacingTop=6;fontSize=11;fillColor=#FEF9C3;strokeColor=#CA8A04;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_26">
+          <mxGeometry x="1835" y="50" width="225" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="box_34" value="&lt;b&gt;Named Volume: loki_data&lt;/b&gt;&lt;br&gt;(loki_data)&lt;br&gt;→ /loki" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=14;align=center;verticalAlign=middle;spacingLeft=8;spacingRight=8;spacingTop=6;fontSize=11;fillColor=#FFEDD5;strokeColor=#B45309;fontColor=#0F172A;strokeWidth=1.5;" vertex="1" parent="grp_26">
+          <mxGeometry x="2085" y="50" width="210" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="box_35" value="&lt;b&gt;Ключевые расхождения кода с README / Word-документацией:&lt;/b&gt;&lt;br&gt;1. &lt;b&gt;Админка:&lt;/b&gt; реализована в kamisama.html + /api/admin/* + таблица anime_of_the_week (в старом README только в планах). 2. &lt;b&gt;Ограничение tagline:&lt;/b&gt; в init.sql CHECK (5..30), в main.py и Word-doc — 15..20 символов.&lt;br&gt;3. &lt;b&gt;Порт Adminer:&lt;/b&gt; в docker-compose.yml проброшен 127.0.0.1:8080:8080 (в README/Word — 8051). 4. &lt;b&gt;Поиск:&lt;/b&gt; /api/search/sync вызывает Shikimori всегда, а не только при cache miss. 5. &lt;b&gt;Grafana dashboard:&lt;/b&gt; fastapi-dashboard.json не примонтирован (закомментирован в Compose)." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=6;spacingBottom=6;fontSize=10.5;fillColor=#FFF1F2;strokeColor=#E11D48;fontColor=#881337;strokeWidth=1.5;" vertex="1" parent="grp_26">
+          <mxGeometry x="420" y="200" width="1875" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_36" value="HTTP :80 (HTML, /anime_photo/, /api/*)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#059669;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;startArrow=block;startFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_3" target="box_7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_37" value="Отдача статики (nginx/data)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0284C7;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_7" target="box_8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_38" value="proxy_pass http://api:8000/api/*" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0284C7;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;startArrow=block;startFill=1;exitX=1;exitY=0.45;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_7" target="box_11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_39" value="/api/search/sync" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#DB2777;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_11" target="box_13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_40" value="новые тайтлы" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2563EB;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_11" target="box_14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_41" value="SQL (SELECT / UPSERT)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#059669;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;startArrow=block;startFill=1;exitX=0.92;exitY=1;exitDx=0;exitDy=0;entryX=0.35;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_11" target="box_15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_42" value="SQL (CRUD anime_of_the_week)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#DC2626;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;startArrow=block;startFill=1;exitX=0.6;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_12" target="box_15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_43" value="GraphQL POST (limit=3)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#DB2777;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;startArrow=block;startFill=1;dashed=1;dashPattern=5 4;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_13" target="box_5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_44" value="Постеры (originalUrl, mainUrl)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2563EB;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;dashed=1;dashPattern=5 4;exitX=0.55;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_5" target="box_14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_45" value="psycopg3 (port 5432)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#059669;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;startArrow=block;startFill=1;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_15" target="box_17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_46" value="psycopg3 (port 5432)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#059669;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;startArrow=block;startFill=1;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_15" target="box_18">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_47" value="FK anime_id (CASCADE)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#047857;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;dashed=1;dashPattern=5 4;exitX=0;exitY=0.35;exitDx=0;exitDy=0;entryX=1;entryY=0.35;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_18" target="box_17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_48" value="TCP :5432 (host=postgre_sql)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#D97706;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;startArrow=block;startFill=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_19" target="grp_16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_49" value="SSH-туннель :8080" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#EA580C;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;dashed=1;dashPattern=5 4;exitX=0.1;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_4" target="box_19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_50" value="Scrape GET /metrics (10s)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#EA580C;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.85;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_21" target="box_11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_51" value="PromQL (:9090)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F59E0B;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_22" target="box_21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_52" value="LogQL (:3100)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#B45309;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_22" target="box_24">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_53" value="Чтение Docker-логов" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_25" target="box_23">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_54" value="POST /loki/api/v1/push" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#D97706;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_23" target="box_24">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_55" value="SSH-туннель :3000" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#EA580C;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;dashed=1;dashPattern=5 4;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.35;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_4" target="box_22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_56" value="mount (ro/rw)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0284C7;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;dashed=1;dashPattern=5 4;exitX=0.3;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_27" target="box_7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_57" value="раздача /anime_photo/" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1D4ED8;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;dashed=1;dashPattern=5 4;exitX=0.2;exitY=0;exitDx=0;exitDy=0;entryX=0.1;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_28" target="box_7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_58" value="запись постеров/банеров" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1D4ED8;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;dashed=1;dashPattern=5 4;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.4;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_28" target="box_14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_59" value="mount ./python, .env.api" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6D28D9;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;dashed=1;dashPattern=5 4;exitX=0.4;exitY=0;exitDx=0;exitDy=0;entryX=0.15;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_29" target="grp_10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_60" value="данные БД" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#059669;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;dashed=1;dashPattern=5 4;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_30" target="grp_16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_61" value="TSDB" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#EA580C;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;dashed=1;dashPattern=5 4;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_32" target="box_21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_62" value="состояние" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#CA8A04;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;dashed=1;dashPattern=5 4;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.65;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_33" target="box_22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_63" value="chunks/index (7d)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#B45309;strokeWidth=1.6;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;dashed=1;dashPattern=5 4;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.7;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_34" target="box_24">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
