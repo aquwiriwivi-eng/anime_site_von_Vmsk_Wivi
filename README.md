@@ -50,6 +50,8 @@
 
 Внешний поиск: GET /api/search/sync при каждом вызове делает локальный поиск в PostgreSQL, затем запрос к [https://shikimori.io/api/graphql](https://shikimori.io/api/graphql), параллельно скачивает постеры через .part-файлы в images.py и сохраняет новые тайтлы в anime_list.
 
+![alt text](Documentation/Yume-Anime_Architecture_Easy.svg)
+
 ---
 
 ![alt text](photo_to_gitlab/image.png)
