@@ -324,10 +324,10 @@ def get_anime_of_the_week():
   with get_conn() as conn:
     rows = conn.execute(
         WEEK_SELECT + """
-        WHERE w.is_published
+        WHERE w.is_published AND NOT w.is_archived
           AND w.week_start = (
               SELECT MAX(week_start) FROM anime_of_the_week
-              WHERE is_published AND week_start <= CURRENT_DATE
+              WHERE is_published AND NOT is_archived AND week_start <= CURRENT_DATE
           )
         ORDER BY w.position
         """
@@ -341,7 +341,7 @@ def get_week_archive(
     shikimori_id: str | None = Query(default=None, max_length=50),
 ):
   """Архив. Фильтры необязательные: ?year=2025 и/или ?shikimori_id=16498"""
-  conditions = ["w.is_published", "w.week_start <= CURRENT_DATE"]
+  conditions = ["w.week_start <= CURRENT_DATE"]
   params: list = []
 
   if year:
@@ -375,7 +375,7 @@ def admin_list_week(limit: int = Query(30, ge=1, le=100)):
   """Все слоты, включая скрытые и будущие недели."""
   with get_conn() as conn:
     rows = conn.execute(
-        ADMIN_SELECT + " ORDER BY w.week_start DESC, w.position LIMIT %s", (limit,)
+        ADMIN_SELECT + "WHERE NOT w.is_archived ORDER BY w.week_start DESC, w.position LIMIT %s", (limit,)
     ).fetchall()
   return [{"id": r[0], "week_start": str(r[1]), "position": r[2], "is_published": r[3],
            "tagline": r[4], "banner_path": r[5], "shikimori_id": r[6],
@@ -421,7 +421,7 @@ def admin_set_anime_of_the_week(
 
   # Имя файла строим сами, чтобы никаких имён от клиента
   BANNER_DIR.mkdir(parents=True, exist_ok=True)
-  filename = f"{week_start.isoformat()}-{position}.webp"
+  filename = f"{week_start.isoformat()}-{position}-{uuid.uuid4().hex[:8]}.webp"
   final_path = BANNER_DIR / filename
   tmp_path = final_path.with_suffix(".part")
   img.save(tmp_path, format="WEBP", quality=85)
@@ -432,18 +432,19 @@ def admin_set_anime_of_the_week(
   try:
     with get_conn() as conn:
       row = conn.execute(
-          """
-          INSERT INTO anime_of_the_week (anime_id, banner_path, tagline, week_start, position)
-          SELECT id, %s, %s, %s, %s FROM anime_list WHERE shikimori_id = %s
-          ON CONFLICT (week_start, position) DO UPDATE
-             SET anime_id = EXCLUDED.anime_id,
-                 banner_path = EXCLUDED.banner_path,
-                 tagline = EXCLUDED.tagline,
-                 is_published = TRUE          -- повторная загрузка заново показывает скрытый слот
-          RETURNING id
-          """,
-          (banner_path, tagline, week_start, position, shikimori_id),
-      ).fetchone()
+            "UPDATE anime_of_the_week "
+            "SET is_archived = TRUE, is_published = FALSE, archived_at = NOW() "
+            "WHERE week_start = %s AND position = %s AND is_archived = FALSE",
+            (week_start, position),
+        )
+        row = conn.execute(
+            """
+            INSERT INTO anime_of_the_week (anime_id, banner_path, tagline, week_start, position)
+            SELECT id, %s, %s, %s, %s FROM anime_list WHERE shikimori_id = %s
+            RETURNING id
+            """,
+            (banner_path, tagline, week_start, position, shikimori_id),
+        ).fetchone()
   except UniqueViolation:
     tmp_path.unlink(missing_ok=True)
     raise HTTPException(409, "Это аниме уже стоит на этой неделе в другом слоте")
@@ -465,7 +466,7 @@ def admin_set_anime_of_the_week(
 def admin_toggle_week(request: Request, item_id: int, is_published: bool = Form(...)):
   with get_conn() as conn:
     row = conn.execute(
-        "UPDATE anime_of_the_week SET is_published = %s WHERE id = %s RETURNING id",
+        "UPDATE anime_of_the_week SET is_published = %s WHERE id = %s RETURNING id AND is_archived = FALSE",
         (is_published, item_id),
     ).fetchone()
   if not row:
