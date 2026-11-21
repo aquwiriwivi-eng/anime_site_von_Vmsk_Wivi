@@ -18,6 +18,10 @@
 
 **Yume-Anime** — это веб-приложение для поиска и просмотра каталога аниме. Проект спроектирован по принципам микросервисной архитектуры в Docker, разделен на статический frontend, мощный бэкенд на FastAPI, реляционную базу данных PostgreSQL и изолированный контур наблюдаемости (Observability).
 
+---
+
+## 📌 НОВОВЕДЕНИЯ - ИНФОРМАЦИЯ ТОЛЬКО ДЛЯ РАЗРАБОТЧИКОВ - ПЕРЕПИСАТЬ К РЕЛИЗУ
+
 Особенность проекта — комбинированный **Local-First + External-Sync** поиск: система мгновенно выдает результаты из локальной базы PostgreSQL, параллельно обращаясь к внешнему GraphQL API Shikimori для обогащения данных, скачивания постеров и синхронизации новых тайтлов.
 
 Проект должен удовлетворять 4 требованиям:
@@ -33,6 +37,20 @@
 В postgress автоматически создается база данных с несколькими таблицами, описанных в файле init.db (хранится в db/init.db).
 Создается админка для редактирования аниме недели
 Сильно обновлен дизайн, добавлено читай в документации
+
+Я изучил архив anime_site_von_Vmsk_Wivi-aezi_branch_2.zip (README.md, Word-документацию и исходный код) и зафиксировал актуальную архитектуру, которая в ряде деталей расходится с документацией:
+
+Админка и «Аниме недели»: во фронтенде появилась страница nginx/data/kamisama.html, а в python/main.py — полноценное API для anime_of_the_week (GET /api/anime-of-the-week, /archive, POST/PATCH/DELETE /api/admin/anime-of-the-week, /api/admin/login, /logout) с авторизацией через подписанные itsdangerous cookie (admin_session) и проверкой заголовка X-Requested-With: admin-ui.
+
+Несовпадение ограничений для tagline: в db/init.sql задано CHECK (char_length(tagline) BETWEEN 5 AND 30), а в python/main.py и Word-документации проверяется 15 <= len(tagline) <= 20.
+
+Порт Adminer: в docker-compose.yml сервис adminer_sql проброшен как 127.0.0.1:8080:8080, тогда как README.md и Word-документация указывают порт 8051.
+
+Сети и хранилища: nginx подключён к frontend_net и monitor_net; api — ко всем трём сетям (frontend_net, backend_net, monitor_net); postgre_sql и adminer_sql — только к backend_net; prometheus, grafana, alloy, loki — к monitor_net. При этом ./anime_photo примонтирован одновременно в nginx (/usr/share/nginx/html/anime_photo/) и в api (/code/app/anime_photo), а alloy читает логи всех контейнеров напрямую через /var/run/docker.sock.
+
+Внешний поиск: GET /api/search/sync при каждом вызове делает локальный поиск в PostgreSQL, затем запрос к [https://shikimori.io/api/graphql](https://shikimori.io/api/graphql), параллельно скачивает постеры через .part-файлы в images.py и сохраняет новые тайтлы в anime_list.
+
+---
 
 ![alt text](photo_to_gitlab/image.png)
 
