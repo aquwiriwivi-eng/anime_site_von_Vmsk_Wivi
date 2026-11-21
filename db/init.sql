@@ -21,10 +21,24 @@ CREATE TABLE IF NOT EXISTS anime_of_the_week (
     tagline      VARCHAR(40) NOT NULL
                  CHECK (char_length(tagline) BETWEEN 5 AND 40),
     is_published BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-
-    UNIQUE (week_start, position),   -- не больше 3 слотов на неделю
-    UNIQUE (week_start, anime_id)    -- одно аниме не может занять два слота в одну неделю
+    is_archived  BOOLEAN NOT NULL DEFAULT FALSE,
+    archived_at  TIMESTAMPTZ,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_aotw_anime_id ON anime_of_the_week(anime_id);
+-- Не больше 3 активных (неархивных) слотов на неделю
+CREATE UNIQUE INDEX IF NOT EXISTS uq_aotw_active_slot
+    ON anime_of_the_week (week_start, position)
+    WHERE is_archived = FALSE;
+
+-- Одно аниме не может занять два активных слота в одну неделю
+CREATE UNIQUE INDEX IF NOT EXISTS uq_aotw_active_anime
+    ON anime_of_the_week (week_start, anime_id)
+    WHERE is_archived = FALSE;
+
+CREATE INDEX IF NOT EXISTS idx_aotw_anime_id
+    ON anime_of_the_week(anime_id);
+
+CREATE INDEX IF NOT EXISTS idx_aotw_week_active
+    ON anime_of_the_week(week_start, position)
+    WHERE is_archived = FALSE;
