@@ -46,6 +46,17 @@
 
 Порт Adminer: в docker-compose.yml сервис adminer_sql проброшен как 127.0.0.1:8080:8080, тогда как README.md и Word-документация указывают порт 8051.
 
+Что сделано (заготовка для README.md)
+Админ-панель (nginx/data/admin.html): создан интерфейс в красно-тёмной теме для управления разделом «Аниме недели» без внешней сборки.
+
+Авторизация и безопасность: реализован вход по паролю через POST /api/admin/login с HttpOnly, Secure, SameSite=Strict cookie (admin_session), CSRF-защита заголовком X-Requested-With: admin-ui и безопасный рендеринг DOM через textContent.
+
+Управление слотами: добавлены таблица недель (GET /api/admin/anime-of-the-week), переключение публикации (PATCH), удаление слота с файлом (DELETE) и форма добавления с живым поиском по /api/search/local, автовыравниванием даты на понедельник и слоганом 5–40 символов.
+
+Онлайн-редактор 16:9: встроенный canvas-кроппер автоматически открывается для любых изображений, не совпадающих со стандартами 16:9 Full HD, 2K или 4K, и экспортирует обрезанный арт в .webp.
+
+Архив и история замен (db/init.sql, python/main.py): в anime_of_the_week добавлены поля is_archived, archived_at и частичные уникальные индексы (WHERE is_archived = FALSE); при перезаписи занятого слота старое аниме уходит в архив с сохранением уникального .webp файла, а во вкладке архива отображаются статусы «архив», «текущее» и «запланировано».
+
 Сети и хранилища: nginx подключён к frontend_net и monitor_net; api — ко всем трём сетям (frontend_net, backend_net, monitor_net); postgre_sql и adminer_sql — только к backend_net; prometheus, grafana, alloy, loki — к monitor_net. При этом ./anime_photo примонтирован одновременно в nginx (/usr/share/nginx/html/anime_photo/) и в api (/code/app/anime_photo), а alloy читает логи всех контейнеров напрямую через /var/run/docker.sock.
 
 Известные ошибки:
