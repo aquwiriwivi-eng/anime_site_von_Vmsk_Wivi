@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import secrets
+import uuid
 from datetime import date
 from io import BytesIO
 from pathlib import Path
@@ -431,20 +432,20 @@ def admin_set_anime_of_the_week(
   # Сначала БД, потом rename: при любой ошибке старый арт остаётся нетронутым
   try:
     with get_conn() as conn:
+      conn.execute(
+          "UPDATE anime_of_the_week "
+          "SET is_archived = TRUE, is_published = FALSE, archived_at = NOW() "
+          "WHERE week_start = %s AND position = %s AND is_archived = FALSE",
+          (week_start, position),
+      )
       row = conn.execute(
-            "UPDATE anime_of_the_week "
-            "SET is_archived = TRUE, is_published = FALSE, archived_at = NOW() "
-            "WHERE week_start = %s AND position = %s AND is_archived = FALSE",
-            (week_start, position),
-        )
-        row = conn.execute(
-            """
-            INSERT INTO anime_of_the_week (anime_id, banner_path, tagline, week_start, position)
-            SELECT id, %s, %s, %s, %s FROM anime_list WHERE shikimori_id = %s
-            RETURNING id
-            """,
-            (banner_path, tagline, week_start, position, shikimori_id),
-        ).fetchone()
+          """
+          INSERT INTO anime_of_the_week (anime_id, banner_path, tagline, week_start, position)
+          SELECT id, %s, %s, %s, %s FROM anime_list WHERE shikimori_id = %s
+          RETURNING id
+          """,
+          (banner_path, tagline, week_start, position, shikimori_id),
+      ).fetchone()
   except UniqueViolation:
     tmp_path.unlink(missing_ok=True)
     raise HTTPException(409, "Это аниме уже стоит на этой неделе в другом слоте")
@@ -466,7 +467,7 @@ def admin_set_anime_of_the_week(
 def admin_toggle_week(request: Request, item_id: int, is_published: bool = Form(...)):
   with get_conn() as conn:
     row = conn.execute(
-        "UPDATE anime_of_the_week SET is_published = %s WHERE id = %s RETURNING id AND is_archived = FALSE",
+        "UPDATE anime_of_the_week SET is_published = %s WHERE id = %s AND is_archived = FALSE RETURNING id",
         (is_published, item_id),
     ).fetchone()
   if not row:
