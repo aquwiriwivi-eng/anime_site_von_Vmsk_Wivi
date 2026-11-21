@@ -283,7 +283,7 @@
           <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 class="text-base font-semibold text-white">Архив прошлых недель</h2>
-              <p class="text-xs text-rose-200/60">Данные из GET /api/anime-of-the-week/archive</p>
+              <p class="text-xs text-rose-200/60">Все загруженные аниме: архив, текущее и запланировано</p>
             </div>
             <div class="flex items-center gap-2">
               <input id="archiveYearInput" type="number" min="2000" max="2100" placeholder="Год (все)"
@@ -553,11 +553,45 @@
       });
     }
 
+    function getArchiveStatus(item, currentMonday, activeBannerPaths) {
+      if (item.week_start > currentMonday) {
+        return {
+          label: 'запланировано',
+          cls: 'border border-sky-500/30 bg-sky-950/90 text-sky-300'
+        };
+      }
+      if (item.week_start === currentMonday && activeBannerPaths.has(item.banner_path)) {
+        return {
+          label: 'текущее',
+          cls: 'border border-emerald-500/30 bg-emerald-950/90 text-emerald-300'
+        };
+      }
+      return {
+        label: 'архив',
+        cls: 'border border-amber-500/30 bg-amber-950/90 text-amber-300'
+      };
+    }
+
     function renderArchiveGrid() {
       const grid = document.getElementById('archiveGrid');
       clearElement(grid);
 
-      if (!state.archive.length) {
+      const yearFilter = document.getElementById('archiveYearInput').value.trim();
+      const currentMonday = getMondayISO(new Date());
+      const activeBannerPaths = new Set(state.slots.map((s) => s.banner_path));
+
+      const seenPaths = new Set(state.archive.map((a) => a.banner_path));
+      const futureSlots = state.slots.filter((s) => {
+        if (s.week_start <= currentMonday || seenPaths.has(s.banner_path)) return false;
+        return !yearFilter || s.week_start.startsWith(yearFilter);
+      });
+
+      const combined = [...futureSlots, ...state.archive].sort((a, b) => {
+        if (a.week_start !== b.week_start) return b.week_start.localeCompare(a.week_start);
+        return a.position - b.position;
+      });
+
+      if (!combined.length) {
         const empty = document.createElement('p');
         empty.className = 'col-span-full py-10 text-center text-xs text-rose-200/50';
         empty.textContent = 'В архиве пока нет записей за выбранный период.';
@@ -565,7 +599,7 @@
         return;
       }
 
-      state.archive.forEach((item) => {
+      combined.forEach((item) => {
         const card = document.createElement('article');
         card.className = 'overflow-hidden rounded-xl border border-rose-500/15 bg-[#0f090c] transition hover:border-rose-500/40';
 
@@ -574,20 +608,27 @@
         if (item.banner_path) {
           const img = document.createElement('img');
           img.src = item.banner_path.startsWith('/') ? item.banner_path : `/${item.banner_path}`;
-          img.alt = item.russian || item.name || 'Баннер';
+          img.alt = item.title || item.russian || item.name || 'Баннер';
           img.className = 'h-full w-full object-cover';
           mediaWrap.appendChild(img);
         }
+
         const badge = document.createElement('span');
         badge.className = 'absolute left-2.5 top-2.5 rounded-md bg-black/80 px-2 py-0.5 text-[11px] font-bold text-rose-300';
         badge.textContent = `${item.week_start} • #${item.position}`;
         mediaWrap.appendChild(badge);
 
+        const st = getArchiveStatus(item, currentMonday, activeBannerPaths);
+        const statusBadge = document.createElement('span');
+        statusBadge.className = `absolute right-2.5 top-2.5 rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${st.cls}`;
+        statusBadge.textContent = st.label;
+        mediaWrap.appendChild(statusBadge);
+
         const body = document.createElement('div');
         body.className = 'p-3.5';
         const title = document.createElement('h3');
         title.className = 'truncate text-sm font-semibold text-white';
-        title.textContent = item.russian || item.name || `Shikimori #${item.shikimori_id}`;
+        title.textContent = item.title || item.russian || item.name || `Shikimori #${item.shikimori_id}`;
         const tagline = document.createElement('p');
         tagline.className = 'mt-1 truncate text-xs text-rose-200/65';
         tagline.textContent = item.tagline;
