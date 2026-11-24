@@ -1,0 +1,24 @@
+--- a/python/main.py	2026-11-24 15:55:42.069444512 +0000
++++ b/python/main.py	2026-11-24 15:55:42.078573979 +0000
+@@ -17,7 +17,7 @@
+ from psycopg.errors import UniqueViolation
+ 
+ from images import PHOTO_DIR, download_anime_images
+-from shikimori import fetch_anime_from_shikimori
++from shikimori_guard import ShikimoriBusy, search_shikimori
+ 
+ # Логи uvicorn уходят в Docker -> Alloy -> Loki, поэтому пишем туда же
+ log = logging.getLogger("uvicorn.error")
+@@ -230,8 +230,11 @@
+ 
+   # 2. Запрашиваем Шикимори
+   try:
+-    shikimori_data = await fetch_anime_from_shikimori(q)
++    shikimori_data = await search_shikimori(q)
+     shikimori_animes = ((shikimori_data.get("data") or {}).get("animes")) or []
++  except ShikimoriBusy:
++    # Лимит Shikimori исчерпан: без ошибки отдаём то, что есть в локальной базе
++    return combined_results
+   except Exception as e:
+     # Детали ошибки - в лог, а не клиенту. Формат ответа всегда один: список.
+     log.warning("Shikimori недоступен: %s", e)
